@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:songkrous/core/animations/tactile_scale_button.dart';
+import 'package:songkrous/shared/widgets/app_interactive.dart';
 import 'package:songkrous/core/constants/app_state.dart';
 import 'package:songkrous/core/constants/app_strings.dart';
 import 'package:songkrous/core/router/app_router.dart';
@@ -86,19 +86,29 @@ void main() {
   ) async {
     await boot(tester);
 
-    // The only InkWell is the one inside the CTA's FilledButton — the feature
-    // rows have no ink/tap effects, and the CTA is the only tactile element.
-    expect(find.byType(InkWell), findsOneWidget);
-    expect(
-      find.descendant(
-        of: find.byType(FilledButton),
-        matching: find.byType(InkWell),
-      ),
-      findsOneWidget,
-    );
+    // Nothing here is an InkWell/Card; the only interactive button on the
+    // screen body is the CTA.
+    expect(find.byType(InkWell), findsNothing);
+    expect(find.byType(AppInteractiveButton), findsOneWidget);
     expect(find.byType(Card), findsNothing);
-    expect(find.byType(TactileScaleButton), findsOneWidget);
-    expect(find.byType(FilledButton), findsOneWidget);
+    // The feature rows have no pressable ancestor and show the basic cursor.
+    for (final title in [
+      'One-Tap Help',
+      'Auto-GPS Location',
+      'First-Aid Guidance',
+    ]) {
+      expect(
+        find.ancestor(
+          of: find.text(title),
+          matching: find.byType(AppPressable),
+        ),
+        findsNothing,
+      );
+      final regions = tester.widgetList<MouseRegion>(
+        find.ancestor(of: find.text(title), matching: find.byType(MouseRegion)),
+      );
+      expect(regions.any((r) => r.cursor == SystemMouseCursors.basic), isTrue);
+    }
 
     // No decorated box in the row area carries a shadow or a border.
     final rows = find.ancestor(

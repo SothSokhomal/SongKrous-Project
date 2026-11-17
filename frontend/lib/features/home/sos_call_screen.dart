@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,13 +8,14 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/animations/staggered_entrance.dart';
-import '../../core/animations/tactile_scale_button.dart';
+import '../../core/animations/app_animations.dart';
 import '../../core/constants/app_state.dart';
 import '../../core/constants/facilities.dart';
 import '../../core/constants/phnom_penh_data.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/state/location_state.dart';
 import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/app_interactive.dart';
 import 'widgets/sos_pulse_rings.dart';
 
 /// SOS Direct Call (Frame 1) — pulsing SOS, address readout, call buttons.
@@ -48,21 +51,35 @@ class SosCallScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leadingWidth: 100,
-        leading: TextButton.icon(
-          onPressed: () =>
-              context.canPop() ? context.pop() : context.go(AppRoutes.home),
-          icon: const Icon(Icons.chevron_left_rounded, size: 28),
-          label: Text(ref.tr('back')),
-          style: TextButton.styleFrom(foregroundColor: AppColors.blue),
+        leadingWidth: 120,
+        leading: Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 6),
+            child: AppBackButton(
+              label: ref.tr('back'),
+              onTap: () =>
+                  context.canPop() ? context.pop() : context.go(AppRoutes.home),
+            ),
+          ),
         ),
         actions: [
-          IconButton(
-            tooltip: ref.tr('share'),
-            color: AppColors.blue,
-            icon: const Icon(Icons.ios_share_rounded),
-            onPressed: () => SharePlus.instance.share(
-              ShareParams(text: '${ref.tr('sos_sms_body')} ${loc.shareText}'),
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: Tooltip(
+              message: ref.tr('share'),
+              child: AppPressFade(
+                semanticLabel: ref.tr('share'),
+                onTap: () => SharePlus.instance.share(
+                  ShareParams(
+                    text: '${ref.tr('sos_sms_body')} ${loc.shareText}',
+                  ),
+                ),
+                child: const Icon(
+                  Icons.ios_share_rounded,
+                  color: AppColors.blue,
+                ),
+              ),
             ),
           ),
         ],
@@ -155,8 +172,9 @@ class SosCallScreen extends ConsumerWidget {
   }
 }
 
-/// The solid red SOS circle (static child of the pulse rings) with tactile
-/// press feedback.
+/// The solid red SOS circle (static child of the pulse rings).
+/// Hover: grows to 1.05 with a brighter glow. Press: compresses to 0.93 and
+/// fires a heavy haptic at touch-down — an unmistakable emergency confirmation.
 class _SosCore extends StatelessWidget {
   const _SosCore({required this.onTap});
 
@@ -167,31 +185,46 @@ class _SosCore extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'SOS',
-      child: TactileScaleButton(
+      child: AppPressable(
         onTap: onTap,
-        pressedScale: 0.94,
-        child: Container(
-          width: 150,
-          height: 150,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.red,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.red.withValues(alpha: 0.45),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
+        haptic: AppHaptic.heavy,
+        hapticOnDown: true,
+        builder: (context, hovered, pressed) => AnimatedScale(
+          duration: const Duration(milliseconds: 130),
+          curve: AppCurves.out,
+          scale: pressed
+              ? 0.93
+              : hovered
+              ? 1.05
+              : 1.0,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 130),
+            width: 150,
+            height: 150,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: pressed
+                  ? const Color(0xFFA8131D)
+                  : hovered
+                  ? const Color(0xFFE62E3B)
+                  : AppColors.red,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.red.withValues(alpha: hovered ? 0.7 : 0.45),
+                  blurRadius: hovered ? 38 : 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Text(
+              'SOS',
+              style: TextStyle(
+                color: AppColors.white,
+                fontSize: 48,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2,
               ),
-            ],
-          ),
-          child: const Text(
-            'SOS',
-            style: TextStyle(
-              color: AppColors.white,
-              fontSize: 48,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2,
             ),
           ),
         ),
@@ -200,43 +233,73 @@ class _SosCore extends StatelessWidget {
   }
 }
 
-class _AddressBox extends ConsumerWidget {
+class _AddressBox extends ConsumerStatefulWidget {
   const _AddressBox({required this.address});
 
   final String address;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 4, 4, 4),
+  ConsumerState<_AddressBox> createState() => _AddressBoxState();
+}
+
+class _AddressBoxState extends ConsumerState<_AddressBox> {
+  bool _copied = false;
+  Timer? _reset;
+
+  Future<void> _copy() async {
+    await Clipboard.setData(ClipboardData(text: widget.address));
+    if (!mounted) return;
+    setState(() => _copied = true);
+    _reset?.cancel();
+    _reset = Timer(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _reset?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.fromLTRB(16, 4, 6, 4),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: _copied ? const Color(0xFFECFDF3) : AppColors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(
+          color: _copied ? const Color(0xFF86EFAC) : AppColors.border,
+        ),
       ),
       child: Row(
         children: [
           Expanded(
             child: Text(
-              '📍 $address',
+              '📍 ${widget.address}',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),
-          IconButton(
+          AppScaleButton(
             tooltip: ref.tr('copy'),
-            icon: const Icon(Icons.copy_rounded, color: AppColors.blue),
-            onPressed: () async {
-              await Clipboard.setData(ClipboardData(text: address));
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  SnackBar(
-                    content: Text(ref.tr('address_copied')),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-            },
+            semanticLabel: ref.tr('copy'),
+            onTap: _copy,
+            haptic: AppHaptic.medium,
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, a) =>
+                    ScaleTransition(scale: a, child: child),
+                child: Icon(
+                  _copied ? Icons.check_rounded : Icons.copy_rounded,
+                  key: ValueKey(_copied),
+                  color: _copied ? AppColors.success : AppColors.blue,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -261,44 +324,14 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = filled ? AppColors.white : color;
-    return Semantics(
-      button: true,
+    return AppInteractiveButton(
       label: label,
-      child: TactileScaleButton(
-        onTap: onTap,
-        child: Container(
-          height: 56,
-          decoration: ShapeDecoration(
-            color: filled ? color : AppColors.white,
-            shape: StadiumBorder(
-              side: filled
-                  ? BorderSide.none
-                  : BorderSide(color: color, width: 1.5),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: fg, size: 20),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: fg,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    fontFamilyFallback: const ['Noto Sans Khmer'],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      leadingIcon: icon,
+      onPressed: onTap,
+      colors: filled ? AppButtonColors.danger : AppButtonColors.outline(color),
+      // The primary emergency number gets the strongest haptic.
+      haptic: filled ? AppHaptic.heavy : AppHaptic.medium,
+      semanticLabel: label,
     );
   }
 }

@@ -17,6 +17,7 @@ import '../../core/router/app_routes.dart';
 import '../../core/state/location_state.dart';
 import '../../core/state/map_state.dart';
 import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/app_interactive.dart';
 import '../../shared/widgets/khan_picker.dart';
 import 'route_guidance.dart';
 import 'widgets/facility_sheet.dart';
@@ -541,13 +542,35 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
                     ),
                   ],
                 ),
-                const RichAttributionWidget(
-                  alignment: AttributionAlignment.bottomLeft,
-                  attributions: [
-                    TextSourceAttribution('© OpenStreetMap contributors'),
-                  ],
-                ),
               ],
+            ),
+
+            // Required OpenStreetMap credit, kept to one tiny text line (no ⓘ
+            // button, no flutter_map logo). Sits just above the nav bar and
+            // never intercepts touches.
+            Positioned(
+              left: 12,
+              bottom: _navBlock(context) + 6,
+              child: IgnorePointer(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 1.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    '© OpenStreetMap contributors',
+                    style: TextStyle(
+                      fontSize: 9.5,
+                      color: AppColors.slate,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
             ),
 
             // 2 ── Top controls: search + Khan pill, or the turn-by-turn banner
@@ -597,14 +620,27 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
                   ignoring: navigating || query.trim().isNotEmpty,
                   child: Tooltip(
                     message: ref.tr('recenter'),
-                    child: FloatingActionButton.small(
-                      heroTag: 'recenter',
-                      backgroundColor: AppColors.blue,
-                      foregroundColor: AppColors.white,
+                    child: AppInteractiveButton(
+                      height: 44,
+                      expand: false,
+                      radius: 22,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      semanticLabel: ref.tr('recenter'),
+                      colors: const AppButtonColors(
+                        bg: AppColors.blue,
+                        hover: Color(0xFF2563EB),
+                        pressed: Color(0xFF1E40AF),
+                        fg: AppColors.white,
+                        shadow: AppColors.blue,
+                      ),
+                      haptic: AppHaptic.light,
                       onPressed: () => category == null
                           ? _animateTo(loc.latLng, PhnomPenh.zoom)
                           : _syncCamera(redrawRoute: false, keepSheet: true),
-                      child: const Icon(Icons.my_location_rounded),
+                      child: const Icon(
+                        Icons.my_location_rounded,
+                        color: AppColors.white,
+                      ),
                     ),
                   ),
                 ),
@@ -735,34 +771,41 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
       key: const ValueKey('search'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Material(
-          elevation: 4,
-          shadowColor: Colors.black26,
-          shape: const StadiumBorder(),
-          color: AppColors.white,
-          child: TextField(
+        // Search: grey hairline → hover slate → focused blue ring.
+        AppFocusInput(
+          radius: 28,
+          focusNode: _searchFocus,
+          restShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+          builder: (context, node) => TextField(
             controller: _search,
-            focusNode: _searchFocus,
+            focusNode: node,
             onChanged: (_) => setState(() {}),
             textInputAction: TextInputAction.search,
-            decoration: InputDecoration(
+            decoration: AppFocusInput.bareDecoration(
               hintText: ref.tr('search_hint'),
               hintMaxLines: 1,
               prefixIcon: const Icon(Icons.search_rounded),
               suffixIcon: !hasQuery
                   ? null
-                  : IconButton(
+                  : AppScaleButton(
                       tooltip: ref.tr('clear_search'),
-                      icon: const Icon(Icons.close_rounded),
-                      onPressed: () {
+                      semanticLabel: ref.tr('clear_search'),
+                      haptic: AppHaptic.selection,
+                      onTap: () {
                         _search.clear();
                         setState(() {});
                       },
+                      child: const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Icon(Icons.close_rounded),
+                      ),
                     ),
-              filled: false,
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
             ),
           ),
         ),
@@ -770,39 +813,43 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
         if (hasQuery)
           _SearchResults(results: results, lang: lang, onSelect: _select)
         else
-          Material(
-            elevation: 3,
-            shadowColor: Colors.black26,
-            shape: const StadiumBorder(),
-            color: AppColors.white,
-            child: InkWell(
-              customBorder: const StadiumBorder(),
-              onTap: _pickKhan,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 9,
+          // Khan dropdown pill.
+          AppInteractiveButton(
+            height: 40,
+            expand: false,
+            fontSize: 14,
+            padding: const EdgeInsets.fromLTRB(12, 0, 6, 0),
+            colors: const AppButtonColors(
+              bg: AppColors.white,
+              hover: Color(0xFFF1F5FF),
+              pressed: Color(0xFFE0E9FF),
+              fg: AppColors.textPrimary,
+              border: Color(0xFFE2E8F0),
+              shadow: Color(0xFF0F172A),
+            ),
+            haptic: AppHaptic.selection,
+            onPressed: _pickKhan,
+            semanticLabel: lang == AppLang.km
+                ? 'ខណ្ឌ${khan.km}'
+                : 'Khan ${khan.en}',
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.location_on_rounded,
+                  size: 18,
+                  color: AppColors.blue,
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.location_on_rounded,
-                      size: 18,
-                      color: AppColors.blue,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      lang == AppLang.km ? 'ខណ្ឌ${khan.km}' : 'Khan ${khan.en}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontFamilyFallback: ['Noto Sans Khmer'],
-                      ),
-                    ),
-                    const Icon(Icons.arrow_drop_down_rounded),
-                  ],
+                const SizedBox(width: 4),
+                Text(
+                  lang == AppLang.km ? 'ខណ្ឌ${khan.km}' : 'Khan ${khan.en}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontFamilyFallback: ['Noto Sans Khmer'],
+                  ),
                 ),
-              ),
+                const Icon(Icons.arrow_drop_down_rounded),
+              ],
             ),
           ),
       ],

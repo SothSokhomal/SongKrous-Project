@@ -7,6 +7,7 @@ import '../../core/animations/staggered_entrance.dart';
 import '../../core/constants/app_state.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/app_interactive.dart';
 import '../../shared/widgets/onboarding_scaffold.dart';
 
 /// 02_enter the number — optional phone number for emergency callback/SMS.
@@ -38,16 +39,7 @@ class _EnterNumberScreenState extends ConsumerState<EnterNumberScreen> {
     return OnboardingScaffold(
       buttonLabel: ref.tr('next'),
       onNext: _next,
-      footer: TextButton(
-        onPressed: _next,
-        child: Text(
-          ref.tr('skip'),
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
+      footer: AppTextLink(label: ref.tr('skip'), onTap: _next),
       // Card fades in with a slight upward slide (250 ms).
       body: StaggerScope(
         duration: const Duration(milliseconds: 250),
@@ -105,18 +97,28 @@ class _EnterNumberScreenState extends ConsumerState<EnterNumberScreen> {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: TextField(
-                  controller: _controller,
-                  keyboardType: TextInputType.phone,
-                  textInputAction: TextInputAction.done,
-                  maxLength: 11,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
-                  ],
-                  onSubmitted: (_) => _next(),
-                  decoration: InputDecoration(
-                    counterText: '',
-                    hintText: ref.tr('phone_hint'),
+                child: AppFocusInput(
+                  radius: 28,
+                  builder: (context, node) => TextField(
+                    controller: _controller,
+                    focusNode: node,
+                    keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.done,
+                    maxLength: 11,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
+                    ],
+                    onSubmitted: (_) => _next(),
+                    decoration:
+                        AppFocusInput.bareDecoration(
+                          counterText: '',
+                          hintText: ref.tr('phone_hint'),
+                        ).copyWith(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 16,
+                          ),
+                        ),
                   ),
                 ),
               ),

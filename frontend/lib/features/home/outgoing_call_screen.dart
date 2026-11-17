@@ -4,12 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/animations/looping_animation.dart';
-import '../../core/animations/tactile_scale_button.dart';
+import '../../core/animations/app_animations.dart';
 import '../../core/constants/app_state.dart';
 import '../../core/constants/facilities.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/state/location_state.dart';
 import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/app_interactive.dart';
 
 class _Control {
   const _Control(this.icon, this.labelKey);
@@ -147,37 +148,34 @@ class _OutgoingCallScreenState extends ConsumerState<OutgoingCallScreen> {
                     ],
                   ),
                   const Spacer(),
-                  ActionChip(
-                    avatar: const Icon(
-                      Icons.location_on_rounded,
-                      size: 18,
-                      color: AppColors.white,
-                    ),
-                    label: Text(ref.tr('read_location')),
-                    labelStyle: const TextStyle(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    backgroundColor: Colors.white.withValues(alpha: 0.14),
-                    side: BorderSide.none,
-                    shape: const StadiumBorder(),
+                  AppInteractiveButton(
+                    height: 42,
+                    expand: false,
+                    fontSize: 14,
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    leadingIcon: Icons.location_on_rounded,
+                    label: ref.tr('read_location'),
+                    colors: AppButtonColors.onDarkGlass,
+                    haptic: AppHaptic.light,
                     onPressed: _readLocation,
                   ),
                   const SizedBox(height: 20),
-                  Semantics(
-                    button: true,
-                    label: 'End call',
-                    child: TactileScaleButton(
-                      onTap: _hangUp,
-                      pressedScale: 0.92,
-                      child: const CircleAvatar(
-                        radius: 36,
-                        backgroundColor: AppColors.red,
-                        child: Icon(
-                          Icons.call_end_rounded,
-                          color: AppColors.white,
-                          size: 34,
-                        ),
+                  // Heavy haptic + press sink; hover grows it slightly.
+                  AppScaleButton(
+                    semanticLabel: 'End call',
+                    tooltip: 'End call',
+                    onTap: _hangUp,
+                    hoverScale: 1.06,
+                    pressScale: 0.92,
+                    haptic: AppHaptic.heavy,
+                    hapticOnDown: true,
+                    child: const CircleAvatar(
+                      radius: 36,
+                      backgroundColor: AppColors.red,
+                      child: Icon(
+                        Icons.call_end_rounded,
+                        color: AppColors.white,
+                        size: 34,
                       ),
                     ),
                   ),
@@ -211,25 +209,41 @@ class _CallControl extends StatelessWidget {
       button: true,
       toggled: active,
       label: label,
-      child: TactileScaleButton(
+      child: AppPressable(
         onTap: onTap,
-        pressedScale: 0.93,
-        child: Column(
+        haptic: AppHaptic.selection,
+        builder: (context, hovered, pressed) => Column(
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: 68,
-              height: 68,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: active
-                    ? AppColors.white
-                    : Colors.white.withValues(alpha: 0.14),
-              ),
-              child: Icon(
-                control.icon,
-                size: 28,
-                color: active ? AppColors.callBackground : AppColors.white,
+            AnimatedScale(
+              duration: const Duration(milliseconds: 130),
+              curve: AppCurves.out,
+              scale: pressed
+                  ? 0.92
+                  : hovered
+                  ? 1.05
+                  : 1.0,
+              // Brightens on hover; inverts to solid white when toggled on.
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: active
+                      ? (hovered ? const Color(0xFFE2E8F0) : AppColors.white)
+                      : Colors.white.withValues(
+                          alpha: pressed
+                              ? 0.30
+                              : hovered
+                              ? 0.24
+                              : 0.14,
+                        ),
+                ),
+                child: Icon(
+                  control.icon,
+                  size: 28,
+                  color: active ? AppColors.callBackground : AppColors.white,
+                ),
               ),
             ),
             const SizedBox(height: 8),
@@ -237,7 +251,10 @@ class _CallControl extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              style: TextStyle(
+                color: hovered ? Colors.white : Colors.white70,
+                fontSize: 12,
+              ),
             ),
           ],
         ),

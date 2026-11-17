@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/animations/app_animations.dart';
 import '../../core/constants/app_state.dart';
 import '../../core/theme/app_colors.dart';
+import 'app_interactive.dart';
 
 class _NavItem {
   const _NavItem(this.icon, this.labelKey, {this.badge});
@@ -86,78 +87,96 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.blue : AppColors.slate;
     const duration = Duration(milliseconds: 200);
     return Semantics(
       button: true,
       selected: selected,
       label: label,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(32),
+      child: AppPressable(
         onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
+        haptic: AppHaptic.selection,
+        builder: (context, hovered, pressed) {
+          // Inactive tabs tint toward blue on hover; selected is solid blue.
+          final color = selected
+              ? AppColors.blue
+              : hovered
+              ? Color.lerp(AppColors.slate, AppColors.blue, 0.6)!
+              : AppColors.slate;
+          return AnimatedScale(
+            duration: pressed ? const Duration(milliseconds: 90) : duration,
+            // Sinks to 0.88 on press, springs back to 1.0 on release.
+            curve: pressed ? AppCurves.out : Curves.easeOutBack,
+            scale: pressed ? 0.88 : 1.0,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Icon eases in scale + colour (200 ms).
-                AnimatedScale(
-                  scale: selected ? 1.12 : 1.0,
-                  duration: duration,
-                  curve: AppCurves.out,
-                  child: TweenAnimationBuilder<Color?>(
-                    tween: ColorTween(end: color),
-                    duration: duration,
-                    builder: (context, c, _) =>
-                        Icon(item.icon, color: c, size: 26),
-                  ),
-                ),
-                // The SOS badge sits outside the scaled icon so it stays crisp.
-                if (item.badge != null)
-                  Positioned(
-                    top: -6,
-                    right: -16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 1,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.red,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        item.badge!,
-                        style: const TextStyle(
-                          color: AppColors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Hover lifts the inactive icon 2 px.
+                    AnimatedSlide(
+                      duration: const Duration(milliseconds: 130),
+                      curve: AppCurves.out,
+                      offset: Offset(0, hovered && !selected ? -2 / 26 : 0),
+                      child: AnimatedScale(
+                        scale: selected ? 1.12 : 1.0,
+                        duration: duration,
+                        curve: AppCurves.out,
+                        child: TweenAnimationBuilder<Color?>(
+                          tween: ColorTween(end: color),
+                          duration: duration,
+                          builder: (context, c, _) =>
+                              Icon(item.icon, color: c, size: 26),
                         ),
                       ),
                     ),
+                    // The SOS badge stays crisp (not scaled/lifted).
+                    if (item.badge != null)
+                      Positioned(
+                        top: -6,
+                        right: -16,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.red,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            item.badge!,
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: AnimatedDefaultTextStyle(
+                    duration: duration,
+                    curve: AppCurves.out,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 10.5,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      fontFamilyFallback: const ['Noto Sans Khmer'],
+                    ),
+                    child: Text(label),
                   ),
+                ),
               ],
             ),
-            const SizedBox(height: 3),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: AnimatedDefaultTextStyle(
-                duration: duration,
-                curve: AppCurves.out,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 10.5,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  fontFamilyFallback: const ['Noto Sans Khmer'],
-                ),
-                child: Text(label),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

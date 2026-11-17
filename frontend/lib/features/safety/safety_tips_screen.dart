@@ -6,6 +6,7 @@ import '../../core/animations/staggered_entrance.dart';
 import '../../core/constants/app_state.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/app_interactive.dart';
 import '../../shared/widgets/main_shell.dart';
 import 'situation.dart';
 import 'widgets/breathing_ring.dart';
@@ -55,15 +56,11 @@ class SafetyTipsScreen extends ConsumerWidget {
               children: [
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => context.canPop()
+                  child: AppBackButton(
+                    label: ref.tr('your_tips'),
+                    onTap: () => context.canPop()
                         ? context.pop()
                         : context.go(AppRoutes.safety),
-                    icon: const Icon(Icons.chevron_left_rounded, size: 28),
-                    label: Text(ref.tr('your_tips')),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.blue,
-                    ),
                   ),
                 ),
                 Padding(

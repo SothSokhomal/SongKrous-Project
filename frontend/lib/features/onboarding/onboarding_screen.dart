@@ -145,47 +145,51 @@ class _Feature extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MergeSemantics(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: tint,
-              borderRadius: BorderRadius.circular(12),
+    // Purely informational: arrow cursor, no hover/press, no gestures.
+    return MouseRegion(
+      cursor: SystemMouseCursors.basic,
+      child: MergeSemantics(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: tint,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 24),
             ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.ink,
-                    height: 1.5,
-                    fontFamilyFallback: ['Noto Sans Khmer'],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                      height: 1.5,
+                      fontFamilyFallback: ['Noto Sans Khmer'],
+                    ),
                   ),
-                ),
-                Text(
-                  body,
-                  style: const TextStyle(
-                    fontSize: 13.5,
-                    color: AppColors.slate,
-                    height: 1.5,
-                    fontFamilyFallback: ['Noto Sans Khmer'],
+                  Text(
+                    body,
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      color: AppColors.slate,
+                      height: 1.5,
+                      fontFamilyFallback: ['Noto Sans Khmer'],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

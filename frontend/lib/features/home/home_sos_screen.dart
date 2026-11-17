@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/animations/app_animations.dart';
 import '../../core/animations/pulsing_beacon.dart';
 import '../../core/animations/staggered_entrance.dart';
-import '../../core/animations/tactile_scale_button.dart';
 import '../../core/constants/app_state.dart';
 import '../../core/constants/facilities.dart';
 import '../../core/constants/phnom_penh_data.dart';
@@ -16,6 +15,7 @@ import '../../core/router/app_routes.dart';
 import '../../core/state/location_state.dart';
 import '../../core/state/map_state.dart';
 import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/app_interactive.dart';
 import '../../shared/widgets/khan_picker.dart';
 import '../../shared/widgets/language_toggle.dart';
 import '../../shared/widgets/main_shell.dart';
@@ -153,41 +153,54 @@ class _TopBar extends ConsumerWidget {
           ),
         ),
         const Spacer(),
-        InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: onGpsTap,
-          child: AnimatedContainer(
-            duration: AppDurations.fast,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(
-              color: gpsActive ? AppColors.blueSoft : AppColors.redSoft,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Live status: pulsing ripple only while GPS is active.
-                if (gpsActive)
-                  const LiveBeacon(color: AppColors.blue, size: 8)
-                else
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                const SizedBox(width: 8),
-                Text(
-                  ref.tr(gpsActive ? 'gps_active' : 'gps_off'),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: color,
-                  ),
+        Semantics(
+          button: true,
+          child: AppPressable(
+            onTap: onGpsTap,
+            haptic: AppHaptic.selection,
+            builder: (context, hovered, pressed) => AnimatedScale(
+              duration: const Duration(milliseconds: 120),
+              curve: AppCurves.out,
+              scale: pressed ? 0.95 : 1.0,
+              child: AnimatedContainer(
+                duration: AppDurations.fast,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
                 ),
-              ],
+                decoration: BoxDecoration(
+                  color: gpsActive
+                      ? (hovered ? const Color(0xFFD6E4FD) : AppColors.blueSoft)
+                      : (hovered ? const Color(0xFFFDD5D9) : AppColors.redSoft),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Live status: pulsing ripple only while GPS is active.
+                    if (gpsActive)
+                      const LiveBeacon(color: AppColors.blue, size: 8)
+                    else
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.red,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    const SizedBox(width: 8),
+                    Text(
+                      ref.tr(gpsActive ? 'gps_active' : 'gps_off'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: color,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -250,8 +263,7 @@ class _LocationCard extends ConsumerWidget {
                 child: _Pill(
                   icon: Icons.map_rounded,
                   label: ref.tr('view_map'),
-                  background: Colors.white.withValues(alpha: 0.16),
-                  foreground: AppColors.white,
+                  colors: AppButtonColors.onDarkGlass,
                   onTap: onViewMap,
                 ),
               ),
@@ -299,10 +311,18 @@ class _CopyPillState extends ConsumerState<_CopyPill> {
       liveRegion: true,
       child: _Pill(
         icon: _copied ? Icons.check_rounded : Icons.copy_rounded,
-        label: _copied ? '${_copiedLabel()} ✓' : ref.tr('copy_location'),
-        background: AppColors.white,
-        foreground: _copied ? AppColors.success : AppColors.blueDeep,
+        label: _copied ? '✓ ${_copiedLabel()}' : ref.tr('copy_location'),
+        // Soft green confirmation while "Copied".
+        colors: _copied
+            ? const AppButtonColors(
+                bg: Color(0xFFECFDF3),
+                hover: Color(0xFFECFDF3),
+                pressed: Color(0xFFD1FADF),
+                fg: AppColors.success,
+              )
+            : AppButtonColors.onDarkSolid,
         switchKey: _copied,
+        haptic: AppHaptic.medium,
         onTap: _onTap,
       ),
     );
@@ -315,62 +335,60 @@ class _Pill extends StatelessWidget {
   const _Pill({
     required this.icon,
     required this.label,
-    required this.background,
-    required this.foreground,
+    required this.colors,
     required this.onTap,
     this.switchKey = false,
+    this.haptic = AppHaptic.light,
   });
 
   final IconData icon;
   final String label;
-  final Color background;
-  final Color foreground;
+  final AppButtonColors colors;
   final VoidCallback onTap;
+  final AppHaptic haptic;
 
-  /// Changing this value cross-fades the content.
+  /// Changing this value cross-fades the content (200 ms).
   final bool switchKey;
 
   @override
   Widget build(BuildContext context) {
-    return TactileScaleButton(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(28),
-        ),
-        child: AnimatedSwitcher(
-          duration: AppDurations.fast,
-          switchInCurve: AppCurves.out,
-          transitionBuilder: (child, animation) => FadeTransition(
-            opacity: animation,
-            child: ScaleTransition(
-              scale: Tween(begin: 0.9, end: 1.0).animate(animation),
-              child: child,
-            ),
+    return AppInteractiveButton(
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      colors: colors,
+      haptic: haptic,
+      onPressed: onTap,
+      semanticLabel: label,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        switchInCurve: AppCurves.out,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween(begin: 0.9, end: 1.0).animate(animation),
+            child: child,
           ),
-          child: Row(
-            key: ValueKey(switchKey),
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 18, color: foreground),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: foreground,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    fontFamilyFallback: const ['Noto Sans Khmer'],
-                  ),
+        ),
+        child: Row(
+          key: ValueKey(switchKey),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: colors.fg),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: colors.fg,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  fontFamilyFallback: const ['Noto Sans Khmer'],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -395,60 +413,80 @@ class _CategoryCard extends ConsumerWidget {
       FacilityType.police => ref.tr('police'),
       FacilityType.fire => ref.tr('fire'),
     };
-    return Semantics(
-      button: true,
-      label: label,
-      child: TactileScaleButton(
+    return SizedBox(
+      height: 104,
+      child: AppInteractiveCard(
+        semanticLabel: label,
+        radius: 18,
+        clip: Clip.antiAlias,
         onTap: onTap,
-        child: Container(
-          height: 104,
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
+        // Emergency card: stronger haptic, red-tinted hover, sinks to 0.97.
+        haptic: AppHaptic.medium,
+        pressedScale: 0.97,
+        restBorder: null,
+        hoverBorder: const Color(0xFFFCA5A5),
+        hoverSurface: const Color(0xFFFFFBFB),
+        restShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
-          clipBehavior: Clip.antiAlias,
-          child: Row(
-            children: [
-              Container(width: 4, color: AppColors.red),
-              const SizedBox(width: 56), // balances the SOS button on the right
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ShieldBadge(type: type, size: 54),
-                    const SizedBox(height: 2),
-                    Text(
-                      type == FacilityType.police ? label.toUpperCase() : label,
-                      style: Theme.of(context).textTheme.labelLarge
-                          ?.copyWith(color: AppColors.textPrimary),
-                    ),
-                  ],
-                ),
+        ],
+        builder: (context, hovered, pressed) => Row(
+          children: [
+            // Accent strip widens 4 → 6 px on hover.
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              curve: AppCurves.out,
+              width: hovered ? 6 : 4,
+              color: AppColors.red,
+            ),
+            const SizedBox(width: 54),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedScale(
+                    duration: const Duration(milliseconds: 160),
+                    curve: AppCurves.out,
+                    scale: hovered ? 1.06 : 1.0,
+                    child: ShieldBadge(type: type, size: 54),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    type == FacilityType.police ? label.toUpperCase() : label,
+                    style: Theme.of(context).textTheme.labelLarge
+                        ?.copyWith(color: AppColors.textPrimary),
+                  ),
+                ],
               ),
-              SizedBox(
-                width: 56,
-                child: Tooltip(
-                  message: 'SOS',
-                  child: IconButton.filled(
-                    onPressed: onSos,
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppColors.red,
-                      foregroundColor: AppColors.white,
-                      fixedSize: const Size(40, 40),
+            ),
+            SizedBox(
+              width: 56,
+              child: Center(
+                child: AppScaleButton(
+                  tooltip: 'SOS',
+                  semanticLabel: 'SOS $label',
+                  onTap: onSos,
+                  haptic: AppHaptic.medium,
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      color: AppColors.red,
+                      shape: BoxShape.circle,
                     ),
-                    icon: const Icon(Icons.call_rounded, size: 20),
+                    child: const Icon(
+                      Icons.call_rounded,
+                      size: 20,
+                      color: AppColors.white,
+                    ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/animations/app_animations.dart';
-import '../../core/animations/tactile_scale_button.dart';
 import '../../core/constants/app_state.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/app_interactive.dart';
 import '../../shared/widgets/main_shell.dart';
 import 'situation.dart';
 import 'widgets/urgent_banner.dart';
@@ -83,30 +83,26 @@ class _SafetyInputScreenState extends ConsumerState<SafetyInputScreen> {
               const SizedBox(height: 14),
               Text(ref.tr('how_feeling'), style: text.titleMedium),
               const SizedBox(height: 12),
-              TextField(
-                controller: _feeling,
-                minLines: 3,
-                maxLines: 5,
-                textInputAction: TextInputAction.newline,
-                decoration: InputDecoration(
-                  hintText: ref.tr('feeling_hint'),
-                  hintStyle: const TextStyle(color: AppColors.textSecondary),
+              AppFocusInput(
+                builder: (context, node) => TextField(
+                  controller: _feeling,
+                  focusNode: node,
+                  minLines: 3,
+                  maxLines: 5,
+                  textInputAction: TextInputAction.newline,
+                  decoration: AppFocusInput.bareDecoration(
+                    hintText: ref.tr('feeling_hint'),
+                    hintStyle: const TextStyle(color: AppColors.textSecondary),
+                  ).copyWith(contentPadding: const EdgeInsets.all(16)),
                 ),
               ),
               const SizedBox(height: 20),
-              TactileScaleButton(
-                child: SizedBox(
-                  height: 56,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.blueDeep,
-                      shape: const StadiumBorder(),
-                    ),
-                    onPressed: () => context.push(
-                      '${AppRoutes.safetyTips}?situation=${_selected.name}',
-                    ),
-                    child: Text(ref.tr('show_tips')),
-                  ),
+              AppInteractiveButton(
+                label: ref.tr('show_tips'),
+                trailingIcon: Icons.arrow_forward_rounded,
+                colors: AppButtonColors.primary,
+                onPressed: () => context.push(
+                  '${AppRoutes.safetyTips}?situation=${_selected.name}',
                 ),
               ),
             ],
@@ -131,59 +127,46 @@ class _SituationCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
-    return Semantics(
-      button: true,
+    return AppInteractiveCard(
       selected: selected,
-      child: TactileScaleButton(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: AppDurations.fast,
-          curve: AppCurves.out,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: selected ? AppColors.blue : AppColors.border,
-              width: selected ? 2 : 1,
+      onTap: onTap,
+      semanticLabel: ref.tr(situation.labelKey),
+      radius: 16,
+      padding: const EdgeInsets.all(14),
+      builder: (context, hovered, pressed) => Row(
+        children: [
+          // Check pops in when selected; the empty radio pops in otherwise.
+          AnimatedSwitcher(
+            duration: AppDurations.fast,
+            switchInCurve: Curves.easeOutBack,
+            transitionBuilder: (child, animation) =>
+                ScaleTransition(scale: animation, child: child),
+            child: Icon(
+              selected
+                  ? Icons.check_circle_rounded
+                  : Icons.radio_button_unchecked_rounded,
+              key: ValueKey(selected),
+              color: selected ? AppColors.blueDeep : AppColors.slate,
             ),
           ),
-          child: Row(
-            children: [
-              // Check scales in when selected, empty radio scales in otherwise.
-              AnimatedSwitcher(
-                duration: AppDurations.fast,
-                switchInCurve: Curves.easeOutBack,
-                transitionBuilder: (child, animation) =>
-                    ScaleTransition(scale: animation, child: child),
-                child: Icon(
-                  selected
-                      ? Icons.check_circle_rounded
-                      : Icons.radio_button_unchecked_rounded,
-                  key: ValueKey(selected),
-                  color: selected ? AppColors.blue : AppColors.slate,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(ref.tr(situation.labelKey), style: text.titleMedium),
+                Text(
+                  ref.tr(situation.subKey),
+                  style: text.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(ref.tr(situation.labelKey), style: text.titleMedium),
-                    Text(
-                      ref.tr(situation.subKey),
-                      style: text.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              _Illustration(situation: situation),
-            ],
+              ],
+            ),
           ),
-        ),
+          const SizedBox(width: 12),
+          _Illustration(situation: situation),
+        ],
       ),
     );
   }

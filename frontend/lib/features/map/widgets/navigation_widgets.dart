@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/animations/app_animations.dart';
-import '../../../core/animations/tactile_scale_button.dart';
 import '../../../core/constants/app_state.dart';
+import '../../../core/constants/facilities.dart';
 import '../../../core/constants/phnom_penh_data.dart';
 import '../../../core/theme/app_colors.dart';
-import 'map_markers.dart';
+import '../../../shared/widgets/app_interactive.dart';
 
 /// Floating pill above the category bar: destination, `4 min • 1.2 km` and a
 /// primary action (`Start Route`, or `Call Now` once navigating). Tapping the
@@ -29,7 +29,6 @@ class NavInfoPill extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final f = target.facility;
     final lang = ref.watch(langProvider);
-    final color = facilityColor(f.type);
     final text = Theme.of(context).textTheme;
 
     return Container(
@@ -51,64 +50,60 @@ class NavInfoPill extends ConsumerWidget {
             child: Semantics(
               button: true,
               label: '${ref.tr('details')}: ${f.name(lang)}',
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
+              child: AppPressable(
                 onTap: onDetails,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      f.name(lang),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: text.titleMedium,
-                    ),
-                    AnimatedSwitcher(
-                      duration: AppDurations.fast,
-                      child: Text(
-                        target.pillSummary,
-                        key: ValueKey(target.pillSummary),
-                        style: text.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
+                haptic: AppHaptic.selection,
+                builder: (context, hovered, pressed) => AnimatedOpacity(
+                  duration: const Duration(milliseconds: 100),
+                  opacity: pressed ? 0.55 : 1.0,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Name underlines on hover: it opens the details screen.
+                      AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 130),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: (text.titleMedium ?? const TextStyle()).copyWith(
+                          decoration: hovered
+                              ? TextDecoration.underline
+                              : TextDecoration.none,
+                        ),
+                        child: Text(f.name(lang)),
+                      ),
+                      AnimatedSwitcher(
+                        duration: AppDurations.fast,
+                        child: Text(
+                          target.pillSummary,
+                          key: ValueKey(target.pillSummary),
+                          style: text.bodyMedium?.copyWith(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
           const SizedBox(width: 8),
-          TactileScaleButton(
-            onTap: onPrimary,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    navigating ? Icons.call_rounded : Icons.navigation_rounded,
-                    size: 16,
-                    color: AppColors.white,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    ref.tr(navigating ? 'call_now' : 'start_route'),
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                      fontFamilyFallback: ['Noto Sans Khmer'],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          AppInteractiveButton(
+            height: 44,
+            expand: false,
+            fontSize: 13,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            leadingIcon: navigating
+                ? Icons.call_rounded
+                : Icons.navigation_rounded,
+            label: ref.tr(navigating ? 'call_now' : 'start_route'),
+            // Red for hospital/fire, deep blue for police.
+            colors: f.type == FacilityType.police
+                ? AppButtonColors.primary
+                : AppButtonColors.danger,
+            haptic: navigating ? AppHaptic.medium : AppHaptic.light,
+            onPressed: onPrimary,
           ),
         ],
       ),
@@ -190,27 +185,15 @@ class NavBanner extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 8),
-            TactileScaleButton(
-              onTap: onExit,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 9,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  ref.tr('exit'),
-                  style: const TextStyle(
-                    color: AppColors.blueDeep,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 13,
-                    fontFamilyFallback: ['Noto Sans Khmer'],
-                  ),
-                ),
-              ),
+            AppInteractiveButton(
+              height: 38,
+              expand: false,
+              fontSize: 13,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              label: ref.tr('exit'),
+              colors: AppButtonColors.onDarkSolid,
+              haptic: AppHaptic.medium,
+              onPressed: onExit,
             ),
           ],
         ),

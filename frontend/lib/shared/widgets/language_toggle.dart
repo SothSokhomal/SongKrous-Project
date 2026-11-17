@@ -1,45 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/animations/app_animations.dart';
 import '../../core/constants/app_state.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
+import 'app_interactive.dart';
 
-/// White pill with two segments: `ភាសាខ្មែរ | English` (onboarding headers).
+/// White pill `ភាសាខ្មែរ | English` with a sliding active background (220 ms),
+/// a soft hover tint on the inactive language and a selection haptic.
 class LanguagePill extends ConsumerWidget {
   const LanguagePill({super.key});
+
+  static const double _segment = 88;
+  static const double _height = 38;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lang = ref.watch(langProvider);
-    Widget seg(String label, AppLang value) {
-      final selected = lang == value;
-      return Semantics(
-        button: true,
-        selected: selected,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => ref.read(langProvider.notifier).set(value),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: selected ? AppColors.blueDeep : Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: selected ? AppColors.white : AppColors.blueDeep,
-                fontFamilyFallback: const ['Noto Sans Khmer'],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
+    final km = lang == AppLang.km;
 
     return Container(
       padding: const EdgeInsets.all(4),
@@ -54,15 +33,97 @@ class LanguagePill extends ConsumerWidget {
           ),
         ],
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [seg('ភាសាខ្មែរ', AppLang.km), seg('English', AppLang.en)],
+      child: SizedBox(
+        width: _segment * 2,
+        height: _height,
+        child: Stack(
+          children: [
+            // Sliding active background.
+            AnimatedAlign(
+              duration: const Duration(milliseconds: 220),
+              curve: AppCurves.out,
+              alignment: km ? Alignment.centerLeft : Alignment.centerRight,
+              child: Container(
+                width: _segment,
+                height: _height,
+                decoration: BoxDecoration(
+                  color: AppColors.blueDeep,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                _Segment(
+                  label: 'ភាសាខ្មែរ',
+                  selected: km,
+                  onTap: () => ref.read(langProvider.notifier).set(AppLang.km),
+                ),
+                _Segment(
+                  label: 'English',
+                  selected: !km,
+                  onTap: () => ref.read(langProvider.notifier).set(AppLang.en),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// Compact `ខ្មែរ / EN` pill for app bars — tap to switch language.
+class _Segment extends StatelessWidget {
+  const _Segment({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: LanguagePill._segment,
+      height: LanguagePill._height,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        child: AppPressable(
+          // Already-selected segment is inert (basic cursor, no haptic).
+          onTap: selected ? null : onTap,
+          haptic: AppHaptic.selection,
+          builder: (context, hovered, pressed) => AnimatedContainer(
+            duration: const Duration(milliseconds: 130),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: !selected && (hovered || pressed)
+                  ? AppColors.blueDeep.withValues(alpha: pressed ? 0.14 : 0.08)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 220),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: selected ? AppColors.white : AppColors.blueDeep,
+                fontFamilyFallback: const ['Noto Sans Khmer'],
+              ),
+              child: Text(label),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact `ខ្មែរ / EN` pill for app bars — tap to switch language. Hover
+/// highlights it; press scales it to 0.95.
 class LanguageCompactToggle extends ConsumerWidget {
   const LanguageCompactToggle({super.key});
 
@@ -78,23 +139,31 @@ class LanguageCompactToggle extends ConsumerWidget {
     return Semantics(
       button: true,
       label: 'Switch language',
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+      child: AppPressable(
         onTap: () => ref.read(langProvider.notifier).toggle(),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(text: 'ខ្មែរ', style: s(lang == AppLang.km)),
-                TextSpan(text: ' / ', style: s(false)),
-                TextSpan(text: 'EN', style: s(lang == AppLang.en)),
-              ],
+        haptic: AppHaptic.selection,
+        builder: (context, hovered, pressed) => AnimatedScale(
+          duration: const Duration(milliseconds: 120),
+          curve: AppCurves.out,
+          scale: pressed ? 0.95 : 1.0,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 130),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: hovered ? const Color(0xFFF1F5FF) : AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: hovered ? const Color(0xFF93C5FD) : AppColors.border,
+              ),
+            ),
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: 'ខ្មែរ', style: s(lang == AppLang.km)),
+                  TextSpan(text: ' / ', style: s(false)),
+                  TextSpan(text: 'EN', style: s(lang == AppLang.en)),
+                ],
+              ),
             ),
           ),
         ),

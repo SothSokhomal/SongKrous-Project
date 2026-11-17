@@ -9,6 +9,7 @@ import '../../core/constants/app_state.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/state/location_state.dart';
 import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/app_interactive.dart';
 import '../../shared/widgets/songkrous_logo.dart';
 
 /// 02_GPS_Permission — iOS-style alert over a blurred map backdrop.
@@ -150,6 +151,8 @@ class _GpsPermissionScreenState extends ConsumerState<GpsPermissionScreen>
   }
 }
 
+/// iOS-style alert action row: `#F1F5F9` highlight on hover and press (100 ms)
+/// plus a haptic tap.
 class _DialogButton extends StatelessWidget {
   const _DialogButton({
     required this.label,
@@ -163,22 +166,32 @@ class _DialogButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.border)),
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: AppColors.blue,
-            fontSize: 16,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            fontFamilyFallback: const ['Noto Sans Khmer'],
+    return Semantics(
+      button: true,
+      child: AppPressable(
+        onTap: onTap,
+        haptic: AppHaptic.light,
+        builder: (context, hovered, pressed) => AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+          decoration: BoxDecoration(
+            color: pressed
+                ? const Color(0xFFE2E8F0)
+                : hovered
+                ? const Color(0xFFF1F5F9)
+                : Colors.transparent,
+            border: const Border(top: BorderSide(color: AppColors.border)),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppColors.blue,
+              fontSize: 16,
+              fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+              fontFamilyFallback: const ['Noto Sans Khmer'],
+            ),
           ),
         ),
       ),

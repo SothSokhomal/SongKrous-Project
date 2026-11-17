@@ -8,6 +8,7 @@ import '../../core/constants/facilities.dart';
 import '../../core/constants/khans.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/app_interactive.dart';
 import '../../shared/widgets/main_shell.dart';
 
 /// Hotlines tab — searchable Khan directory.
@@ -53,13 +54,18 @@ class _HotlinesScreenState extends ConsumerState<HotlinesScreen> {
               const SizedBox(height: 16),
               Text(ref.tr('khan_directory'), style: text.titleLarge),
               const SizedBox(height: 12),
-              TextField(
-                onChanged: (v) => setState(() => _query = v),
-                decoration: InputDecoration(
-                  hintText: ref.tr('search_khan'),
-                  prefixIcon: const Icon(Icons.search_rounded),
+              AppFocusInput(
+                radius: 28,
+                builder: (context, node) => TextField(
+                  focusNode: node,
+                  onChanged: (v) => setState(() => _query = v),
+                  decoration: AppFocusInput.bareDecoration(
+                    hintText: ref.tr('search_khan'),
+                    prefixIcon: const Icon(Icons.search_rounded),
+                  ),
                 ),
               ),
+
               const SizedBox(height: 12),
               for (final k in khans) ...[
                 _KhanTile(
@@ -97,22 +103,49 @@ class _KhanTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return Material(
-      color: AppColors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.border),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: ListTile(
-        onTap: onCall,
-        leading: const CircleAvatar(
-          backgroundColor: AppColors.blueSoft,
-          child: Icon(Icons.location_city_rounded, color: AppColors.blue),
-        ),
-        title: Text(title, style: text.titleMedium),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.call_rounded, color: AppColors.blue),
+    return AppInteractiveCard(
+      semanticLabel: title,
+      onTap: onCall,
+      radius: 16,
+      haptic: AppHaptic.selection,
+      padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+      builder: (context, hovered, pressed) => Row(
+        children: [
+          const CircleAvatar(
+            backgroundColor: AppColors.blueSoft,
+            child: Icon(Icons.location_city_rounded, color: AppColors.blue),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: text.titleMedium),
+                Text(subtitle, style: text.bodyMedium),
+              ],
+            ),
+          ),
+          // The call button pops independently of the row.
+          AppScaleButton(
+            tooltip: title,
+            semanticLabel: 'Call $title',
+            onTap: onCall,
+            haptic: AppHaptic.medium,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: hovered ? AppColors.blue : AppColors.blueSoft,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.call_rounded,
+                size: 20,
+                color: hovered ? AppColors.white : AppColors.blue,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

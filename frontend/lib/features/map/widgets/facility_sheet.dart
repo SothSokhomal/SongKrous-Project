@@ -9,6 +9,7 @@ import '../../../core/constants/facilities.dart';
 import '../../../core/constants/phnom_penh_data.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/floating_bottom_nav.dart';
+import '../../../shared/widgets/app_interactive.dart';
 import 'map_markers.dart';
 
 /// Contents of the Grab-style bottom sheet (State B).
@@ -197,7 +198,7 @@ class _Inert extends StatelessWidget {
   );
 }
 
-/// 36×4 grabber. Tapping toggles collapsed ⇄ open.
+/// 36×4 grabber. Tapping toggles collapsed ⇄ open; it darkens on hover.
 class _Handle extends StatelessWidget {
   const _Handle({required this.onTap});
 
@@ -208,19 +209,59 @@ class _Handle extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'Toggle list',
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: AppPressable(
         onTap: onTap,
-        child: SizedBox(
+        haptic: AppHaptic.selection,
+        builder: (context, hovered, pressed) => SizedBox(
           height: 26,
           child: Center(
-            child: Container(
-              width: 36,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 130),
+              width: pressed ? 44 : 36,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.slateLight,
+                color: hovered ? AppColors.slate : AppColors.slateLight,
                 borderRadius: BorderRadius.circular(2),
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Round ✕ with hover tint, press fade and a selection haptic.
+class _CloseButton extends StatelessWidget {
+  const _CloseButton({required this.tooltip, required this.onTap});
+
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        label: tooltip,
+        child: AppPressable(
+          onTap: onTap,
+          haptic: AppHaptic.selection,
+          builder: (context, hovered, pressed) => AnimatedOpacity(
+            duration: const Duration(milliseconds: 100),
+            opacity: pressed ? 0.5 : 1.0,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 130),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: hovered
+                    ? AppColors.slate.withValues(alpha: 0.12)
+                    : Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close_rounded, color: AppColors.slate),
             ),
           ),
         ),
@@ -272,12 +313,7 @@ class _PeekHeader extends ConsumerWidget {
               size: 20,
               color: AppColors.slate,
             ),
-            IconButton(
-              tooltip: ref.tr('close_sheet'),
-              onPressed: onClose,
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(Icons.close_rounded, color: AppColors.slate),
-            ),
+            _CloseButton(tooltip: ref.tr('close_sheet'), onTap: onClose),
           ],
         ),
       ),
@@ -337,11 +373,7 @@ class _ExpandedHeader extends ConsumerWidget {
                   ],
                 ),
               ),
-              IconButton(
-                tooltip: ref.tr('close_sheet'),
-                onPressed: onClose,
-                icon: const Icon(Icons.close_rounded, color: AppColors.slate),
-              ),
+              _CloseButton(tooltip: ref.tr('close_sheet'), onTap: onClose),
             ],
           ),
         ),
@@ -430,10 +462,10 @@ class _FilterBar extends ConsumerWidget {
                 child: Semantics(
                   button: true,
                   selected: category == type,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
+                  child: AppPressable(
                     onTap: () => onCategory(type),
-                    child: Padding(
+                    haptic: AppHaptic.selection,
+                    builder: (context, hovered, pressed) => Padding(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       child: AnimatedDefaultTextStyle(
                         duration: AppDurations.fast,
@@ -446,12 +478,25 @@ class _FilterBar extends ConsumerWidget {
                           fontWeight: category == type
                               ? FontWeight.w800
                               : FontWeight.w500,
+                          // Inactive tabs shift toward their category colour
+                          // on hover.
                           color: category == type
                               ? facilityColor(type!)
+                              : hovered
+                              ? Color.lerp(
+                                  AppColors.slate,
+                                  type == null
+                                      ? AppColors.blue
+                                      : facilityColor(type),
+                                  0.75,
+                                )!
                               : AppColors.slate,
                           fontFamilyFallback: const ['Noto Sans Khmer'],
                         ),
-                        child: Text(label),
+                        child: Opacity(
+                          opacity: pressed ? 0.55 : 1,
+                          child: Text(label),
+                        ),
                       ),
                     ),
                   ),
@@ -513,98 +558,102 @@ class _FacilityRow extends ConsumerWidget {
       FacilityType.fire => '${ref.tr('tag_fire')} · ${f.phone}',
     };
 
-    return Semantics(
-      button: true,
+    return AppInteractiveCard(
       selected: selected,
-      label: f.name(lang),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onSelect,
-        child: AnimatedContainer(
-          duration: AppDurations.fast,
-          curve: AppCurves.out,
-          padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
-          decoration: BoxDecoration(
-            color: selected ? tint : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: selected
-                  ? color.withValues(alpha: 0.35)
-                  : Colors.transparent,
-              width: 1.5,
+      onTap: onSelect,
+      semanticLabel: f.name(lang),
+      radius: 16,
+      padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
+      haptic: AppHaptic.selection,
+      // Soft tinted selection (`#EFF6FF` police, `#FEF2F2` hospital/fire).
+      surface: Colors.transparent,
+      selectedSurface: tint,
+      hoverSurface: f.type == FacilityType.police
+          ? const Color(0xFFF8FAFF)
+          : const Color(0xFFFFFBFB),
+      restBorder: null,
+      hoverBorder: f.type == FacilityType.police
+          ? const Color(0xFF93C5FD)
+          : const Color(0xFFFCA5A5),
+      selectedBorder: color.withValues(alpha: 0.55),
+      builder: (context, hovered, pressed) => Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
             ),
+            child: Icon(facilityIcon(f.type), color: color, size: 22),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  f.name(lang),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.titleMedium?.copyWith(fontSize: 15),
                 ),
-                child: Icon(facilityIcon(f.type), color: color, size: 22),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 3),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 2,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text(
-                      f.name(lang),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: text.titleMedium?.copyWith(fontSize: 15),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        tag,
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 3),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 2,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            tag,
-                            style: TextStyle(
-                              color: color,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          ranked.summary,
-                          style: text.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      ranked.summary,
+                      style: text.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
-              ),
-              IconButton.filled(
-                tooltip: ref.tr('call'),
-                onPressed: onCall,
-                style: IconButton.styleFrom(
-                  backgroundColor: color,
-                  foregroundColor: AppColors.white,
-                  fixedSize: const Size(44, 44),
-                ),
-                icon: const Icon(Icons.call_rounded, size: 22),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+          // The round call button reacts on its own: 1.08 hover, 0.90 press.
+          AppScaleButton(
+            tooltip: ref.tr('call'),
+            semanticLabel: '${ref.tr('call')} ${f.name(lang)}',
+            onTap: onCall,
+            hoverScale: 1.08,
+            pressScale: 0.90,
+            haptic: AppHaptic.medium,
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              child: const Icon(
+                Icons.call_rounded,
+                size: 22,
+                color: AppColors.white,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

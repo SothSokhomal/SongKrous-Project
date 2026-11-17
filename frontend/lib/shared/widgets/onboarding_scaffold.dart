@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../core/animations/tactile_scale_button.dart';
 import '../../core/theme/app_colors.dart';
+import 'app_interactive.dart';
 import 'language_toggle.dart';
 import 'songkrous_logo.dart';
 
@@ -90,30 +90,15 @@ class OnboardingScaffold extends StatelessWidget {
     );
     if (decorateLogo != null) logo = decorateLogo!(logo);
 
-    // The only clickable element: solid deep-blue pill with press feedback.
-    Widget button = TactileScaleButton(
-      child: SizedBox(
-        width: double.infinity,
-        height: 56,
-        child: FilledButton(
-          onPressed: onNext,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.blueDeep,
-            shape: const StadiumBorder(),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(buttonLabel),
-              if (buttonIcon != null) ...[
-                const SizedBox(width: 8),
-                Icon(buttonIcon, size: 20),
-              ],
-            ],
-          ),
-        ),
-      ),
+    // The only clickable element: solid deep-blue pill (hover lift, trailing
+    // arrow nudge, press sink, haptic).
+    final Widget button0 = AppInteractiveButton(
+      label: buttonLabel,
+      trailingIcon: buttonIcon,
+      onPressed: onNext,
+      colors: AppButtonColors.primary,
     );
+    Widget button = button0;
     if (decorateButton != null) button = decorateButton!(button);
 
     return Scaffold(
