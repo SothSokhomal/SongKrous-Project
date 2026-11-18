@@ -22,7 +22,7 @@ enum _Phase { idle, verifying, success, error }
 /// 02b_otp_verification — 6-digit code, simulated entirely on the device.
 ///
 /// Demo rules: `000000` is rejected (shake + red), any other 6 digits verify.
-/// 800 ms after arriving (and after every resend) a fake iOS notification
+/// 700 ms after arriving (and after every resend) a fake iOS notification
 /// offers to AutoFill `123456`.
 class OtpVerificationScreen extends ConsumerStatefulWidget {
   const OtpVerificationScreen({super.key});
@@ -49,6 +49,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
   String _lastText = '';
   int _secondsLeft = _resendSeconds;
   bool _bannerVisible = false;
+  bool _incomplete = false;
 
   Timer? _countdown;
   Timer? _verifyTimer;
@@ -89,9 +90,21 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
     _lastText = t;
     if (_phase == _Phase.verifying || _phase == _Phase.success) return;
     setState(() {
+      _incomplete = false;
       if (_phase == _Phase.error && t.length < _length) _phase = _Phase.idle;
     });
     if (t.length == _length) _verify();
+  }
+
+  void _onCtaTap() {
+    if (_text.text.length == _length) {
+      _verify();
+      return;
+    }
+    HapticFeedback.heavyImpact();
+    setState(() => _incomplete = true);
+    _shake.forward(from: 0);
+    _focus.requestFocus();
   }
 
   void _verify() {
@@ -108,6 +121,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
         setState(() => _phase = _Phase.error);
       } else {
         HapticFeedback.mediumImpact();
+        ref.read(authProfileProvider.notifier).markLoggedIn();
         setState(() => _phase = _Phase.success);
         _successTimer = Timer(const Duration(milliseconds: 500), () {
           if (mounted) context.go(AppRoutes.gps);
@@ -134,7 +148,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
     _bannerShowTimer?.cancel();
     _bannerHideTimer?.cancel();
     _bannerVisible = false;
-    _bannerShowTimer = Timer(const Duration(milliseconds: 800), () {
+    _bannerShowTimer = Timer(const Duration(milliseconds: 700), () {
       if (!mounted) return;
       setState(() => _bannerVisible = true);
       _bannerHideTimer = Timer(const Duration(seconds: 6), () {
@@ -164,7 +178,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
     final next = ref.read(otpChannelProvider) == OtpChannel.sms
         ? OtpChannel.whatsapp
         : OtpChannel.sms;
-    ref.read(otpChannelProvider.notifier).set(next);
+    ref.read(authProfileProvider.notifier).setChannel(next);
     HapticFeedback.selectionClick();
     _restart();
   }
@@ -208,7 +222,10 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
     }
   }
 
-  void _skip() => context.go(AppRoutes.gps);
+  void _skip() {
+    ref.read(authProfileProvider.notifier).continueAsGuest();
+    context.go(AppRoutes.gps);
+  }
 
   // ── Build ─────────────────────────────────────────────────────────────
 
@@ -226,7 +243,6 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
     final channel = ref.watch(otpChannelProvider);
     final digits = ref.watch(userPhoneProvider);
     final media = MediaQuery.of(context);
-    final complete = _text.text.length == _length;
 
     final boxState = switch (_phase) {
       _Phase.idle => OtpBoxState.idle,
@@ -245,24 +261,25 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
               child: Column(
                 children: [
                   _topBar(),
+                  // One centred column, one thing at a time:
+                  // icon → title → who we texted → the code → resend.
                   Expanded(
                     child: SingleChildScrollView(
                       keyboardDismissBehavior:
                           ScrollViewKeyboardDismissBehavior.onDrag,
-                      padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
+                      padding: const EdgeInsets.fromLTRB(24, 4, 24, 4),
                       child: Center(
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 480),
+                          constraints: const BoxConstraints(maxWidth: 400),
                           child: StaggerScope(
                             builder: (context, animation) => Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 StaggeredEntrance(
                                   animation: animation,
-                                  end: 0.55,
+                                  end: 0.6,
                                   child: _header(channel, digits),
                                 ),
-                                const SizedBox(height: 28),
+                                const SizedBox(height: 24),
                                 StaggeredEntrance(
                                   animation: animation,
                                   begin: 0.2,
@@ -284,7 +301,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
                                     ],
                                   ),
                                 ),
-                                const SizedBox(height: 20),
+                                const SizedBox(height: 16),
                                 StaggeredEntrance(
                                   animation: animation,
                                   begin: 0.4,
@@ -297,13 +314,14 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
                       ),
                     ),
                   ),
-                  _cta(complete),
+                  _bottom(),
                 ],
               ),
             ),
-            // Fake iOS notification, slides in over everything.
+            // Fake iOS notification. Sits below the top bar so it never
+            // covers Back or the language switch.
             Positioned(
-              top: media.padding.top + 8,
+              top: media.padding.top + 60,
               left: 12,
               right: 12,
               child: _banner(channel),
@@ -314,24 +332,41 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
     );
   }
 
+  /// Just two controls: a round glass Back and the language switch.
   Widget _topBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Row(
         children: [
-          // Back absorbs any squeeze (small phones, long Khmer labels).
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: AppBackButton(label: ref.tr('back'), onTap: _back),
+          Semantics(
+            button: true,
+            label: ref.tr('back'),
+            child: AppPressable(
+              key: const ValueKey('otp-back'),
+              onTap: _back,
+              haptic: AppHaptic.selection,
+              builder: (context, hovered, pressed) => AnimatedScale(
+                duration: const Duration(milliseconds: 120),
+                scale: pressed ? 0.92 : 1,
+                child: LiquidGlassContainer(
+                  width: 40,
+                  height: 40,
+                  radius: 20,
+                  useBlur: false,
+                  hovered: hovered,
+                  pressed: pressed,
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.chevron_left_rounded,
+                    size: 26,
+                    color: AppColors.blueDeep,
+                  ),
+                ),
               ),
             ),
           ),
+          const Spacer(),
           const LanguageCompactToggle(),
-          const SizedBox(width: 4),
-          AppTextLink(label: ref.tr('skip_short'), onTap: _skip),
         ],
       ),
     );
@@ -341,99 +376,38 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
     final isSms = channel == OtpChannel.sms;
     final shown = digits.isEmpty ? '12855706' : digits;
     final phone = ref.num('+855 ${groupPhone(shown)}');
-    const sub = TextStyle(
-      fontSize: 14.5,
-      height: 1.45,
-      color: Color(0xFF475569),
-      fontFamilyFallback: ['Noto Sans Khmer'],
-    );
-    final strong = sub.copyWith(
-      color: AppColors.ink,
-      fontWeight: FontWeight.w700,
-    );
-
-    // "…via {channel} to {phone}" — slot order differs per language.
-    final spans = <InlineSpan>[];
-    final tpl = ref.tr('otp_sub');
-    var last = 0;
-    for (final m in RegExp(r'\{(channel|phone)\}').allMatches(tpl)) {
-      if (m.start > last) {
-        spans.add(TextSpan(text: tpl.substring(last, m.start)));
-      }
-      spans.add(
-        TextSpan(
-          text: m[1] == 'channel' ? _channelName(channel) : phone,
-          style: strong,
-        ),
-      );
-      last = m.end;
-    }
-    if (last < tpl.length) spans.add(TextSpan(text: tpl.substring(last)));
-    spans
-      ..add(const TextSpan(text: '  '))
-      ..add(
-        WidgetSpan(
-          alignment: PlaceholderAlignment.baseline,
-          baseline: TextBaseline.alphabetic,
-          child: AppPressable(
-            onTap: _back,
-            haptic: AppHaptic.selection,
-            builder: (context, hovered, pressed) => AnimatedOpacity(
-              duration: const Duration(milliseconds: 100),
-              opacity: pressed ? 0.5 : 1,
-              child: Text(
-                ref.tr('edit'),
-                key: const ValueKey('otp-edit'),
-                style: sub.copyWith(
-                  color: AppColors.blue,
-                  fontWeight: FontWeight.w700,
-                  decoration: hovered
-                      ? TextDecoration.underline
-                      : TextDecoration.none,
-                  decorationColor: AppColors.blue,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        LiquidGlassContainer(
-          radius: 16,
-          useBlur: false,
-          tint: LiquidTint.frost,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isSms ? Icons.sms_rounded : Icons.chat_rounded,
-                size: 15,
-                color: AppColors.blue,
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  ref.tr(isSms ? 'otp_badge_sms' : 'otp_badge_whatsapp'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.blue,
-                    fontFamilyFallback: ['Noto Sans Khmer'],
-                  ),
-                ),
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFEFF6FF), Color(0xFFDBEAFE)],
+            ),
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.blueDeep.withValues(alpha: 0.18),
+                blurRadius: 22,
+                offset: const Offset(0, 8),
               ),
             ],
+          ),
+          child: Icon(
+            isSms ? Icons.sms_rounded : Icons.chat_rounded,
+            size: 28,
+            color: AppColors.blueDeep,
           ),
         ),
         const SizedBox(height: 14),
         Text(
           ref.tr('otp_title'),
+          textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w800,
@@ -443,23 +417,104 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
           ),
         ),
         const SizedBox(height: 8),
-        Text.rich(TextSpan(style: sub, children: spans)),
+        Text(
+          ref.tr('otp_sub').replaceAll('{channel}', _channelName(channel)),
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 14.5,
+            height: 1.5,
+            color: Color(0xFF475569),
+            fontFamilyFallback: ['Noto Sans Khmer'],
+          ),
+        ),
+        const SizedBox(height: 12),
+        // The number and the way to change it, together on one line.
+        LiquidGlassContainer(
+          radius: 22,
+          useBlur: false,
+          padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  phone,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    letterSpacing: 0.3,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                    fontFamilyFallback: ['Noto Sans Khmer'],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              AppPressable(
+                key: const ValueKey('otp-edit'),
+                onTap: _back,
+                haptic: AppHaptic.selection,
+                builder: (context, hovered, pressed) => AnimatedOpacity(
+                  duration: const Duration(milliseconds: 100),
+                  opacity: pressed ? 0.55 : 1,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: hovered
+                          ? const Color(0xFFDBEAFE)
+                          : AppColors.blueTint,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.edit_rounded,
+                          size: 14,
+                          color: AppColors.blue,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          ref.tr('edit'),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.blue,
+                            fontFamilyFallback: ['Noto Sans Khmer'],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
 
   Widget _errorText() {
+    final msg = _phase == _Phase.error
+        ? ref.tr('otp_invalid')
+        : (_incomplete ? ref.tr('otp_incomplete') : null);
     return AnimatedSize(
       duration: AppDurations.fast,
       curve: AppCurves.out,
       alignment: Alignment.topCenter,
-      child: _phase == _Phase.error
+      child: msg != null
           ? Padding(
               padding: const EdgeInsets.only(top: 14),
               child: Semantics(
                 liveRegion: true,
                 child: Text(
-                  ref.tr('otp_invalid'),
+                  msg,
                   key: const ValueKey('otp-error'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
@@ -476,6 +531,8 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
     );
   }
 
+  /// Quiet by design: a single line while waiting, then two plain text
+  /// actions (primary: resend, secondary: switch channel).
   Widget _resendArea(OtpChannel channel) {
     final counting = _secondsLeft > 0;
     final other = channel == OtpChannel.sms
@@ -509,33 +566,31 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
           : Column(
               key: const ValueKey('otp-resend-options'),
               children: [
-                AppInteractiveButton(
+                _TextAction(
                   key: const ValueKey('otp-resend'),
+                  icon: Icons.refresh_rounded,
                   label: ref
                       .tr('otp_resend_via')
                       .replaceAll('{channel}', _channelName(channel)),
-                  onPressed: _resend,
-                  height: 48,
-                  fontSize: 14.5,
-                  colors: AppButtonColors.outline(AppColors.blueDeep),
+                  color: AppColors.blue,
+                  bold: true,
+                  onTap: _resend,
                 ),
-                const SizedBox(height: 10),
-                AppInteractiveButton(
+                _TextAction(
                   key: const ValueKey('otp-switch'),
                   label: ref
                       .tr('otp_try_other')
                       .replaceAll('{channel}', _channelName(other)),
-                  onPressed: _switchChannel,
-                  height: 48,
-                  fontSize: 14.5,
-                  colors: AppButtonColors.outline(AppColors.slate),
+                  color: AppColors.slate,
+                  onTap: _switchChannel,
                 ),
               ],
             ),
     );
   }
 
-  Widget _cta(bool complete) {
+  /// Primary action with the guest escape hatch right under it.
+  Widget _bottom() {
     final (String label, Widget? lead) = switch (_phase) {
       _Phase.verifying => (
         ref.tr('otp_verifying'),
@@ -554,39 +609,51 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
     final busy = _phase == _Phase.verifying || _phase == _Phase.success;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: AppInteractiveButton(
-            key: const ValueKey('otp-cta'),
-            semanticLabel: label,
-            // While verifying/verified it stays full-strength (not "disabled").
-            onPressed: busy ? () {} : (complete ? _verify : null),
-            haptic: busy ? AppHaptic.none : AppHaptic.light,
-            child: AnimatedSwitcher(
-              duration: AppDurations.fast,
-              child: Row(
-                key: ValueKey(_phase),
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (lead != null) ...[lead, const SizedBox(width: 10)],
-                  Flexible(
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        fontFamilyFallback: ['Noto Sans Khmer'],
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppInteractiveButton(
+                key: const ValueKey('otp-cta'),
+                semanticLabel: label,
+                // Never a dead button: an incomplete code gets a shake and a
+                // prompt instead of silence.
+                onPressed: busy ? () {} : _onCtaTap,
+                haptic: busy ? AppHaptic.none : AppHaptic.light,
+                child: AnimatedSwitcher(
+                  duration: AppDurations.fast,
+                  child: Row(
+                    key: ValueKey(_phase),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (lead != null) ...[lead, const SizedBox(width: 10)],
+                      Flexible(
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            fontFamilyFallback: ['Noto Sans Khmer'],
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(height: 2),
+              AppTextLink(
+                key: const ValueKey('otp-skip'),
+                label: ref.tr('skip'),
+                onTap: _skip,
+              ),
+            ],
           ),
         ),
       ),
@@ -700,6 +767,69 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
                     ],
                   ),
                 ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A plain, centred text action (no box) with a comfortable 44 pt target.
+class _TextAction extends StatelessWidget {
+  const _TextAction({
+    super.key,
+    required this.label,
+    required this.color,
+    required this.onTap,
+    this.icon,
+    this.bold = false,
+  });
+
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+  final IconData? icon;
+  final bool bold;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      child: AppPressable(
+        onTap: onTap,
+        haptic: AppHaptic.selection,
+        builder: (context, hovered, pressed) => AnimatedOpacity(
+          duration: const Duration(milliseconds: 100),
+          opacity: pressed ? 0.5 : 1,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 40),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 18, color: color),
+                    const SizedBox(width: 6),
+                  ],
+                  Flexible(
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
+                        color: color,
+                        decoration: hovered
+                            ? TextDecoration.underline
+                            : TextDecoration.none,
+                        decorationColor: color,
+                        fontFamilyFallback: const ['Noto Sans Khmer'],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

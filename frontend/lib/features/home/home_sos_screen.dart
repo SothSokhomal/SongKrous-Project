@@ -293,39 +293,6 @@ class _LocationHero extends ConsumerWidget {
               color: AppColors.white.withValues(alpha: 0.92),
             ),
           ),
-          const SizedBox(height: 12),
-          // Coordinates in a frosted pill.
-          LiquidGlassContainer(
-            radius: 14,
-            tint: LiquidTint.onBlue,
-            useBlur: false,
-            shadow: false,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.my_location_rounded,
-                  size: 14,
-                  color: AppColors.white.withValues(alpha: 0.95),
-                ),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    loc.coordinatesFor(lang),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      fontFeatures: [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
           const SizedBox(height: 16),
           Row(
             children: [

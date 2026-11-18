@@ -177,7 +177,7 @@ void main() {
 
         // Layered emblems + hero coordinates.
         expect(find.byType(EmergencyEmblem), findsNWidgets(3));
-        expect(find.text('11.5813° N, 104.9158° E'), findsOneWidget);
+        expect(find.text('11.5813° N, 104.9158° E'), findsNothing);
         expect(find.textContaining('YOUR LOCATION'), findsOneWidget);
       },
     );
@@ -195,7 +195,7 @@ void main() {
       expect(find.textContaining('GPS'), findsNothing);
       expect(find.textContaining('SOS'), findsNothing);
       expect(find.textContaining('Calmette'), findsNothing);
-      expect(find.text('១១.៥៨១៣° ជើង, ១០៤.៩១៥៨° កើត'), findsOneWidget);
+      expect(find.text('១១.៥៨១៣° ជើង, ១០៤.៩១៥៨° កើត'), findsNothing);
     });
 
     testWidgets('chevron nudges on hover and opens the SOS screen', (

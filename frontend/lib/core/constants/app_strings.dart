@@ -54,7 +54,6 @@ abstract final class AppStrings {
     ),
     'phone_hint': _k('12 855 706', '១២ ៨៥៥ ៧០៦'),
     'skip': _k('Skip for now', 'រំលងសិន'),
-    'skip_short': _k('Skip', 'រំលង'),
     'gps_dialog_title': _k(
       'Allow "Songkrous" to use your location?',
       'អនុញ្ញាតឱ្យ "សង្គ្រោះ" ប្រើទីតាំងរបស់អ្នកដែរឬទេ?',
@@ -174,20 +173,28 @@ abstract final class AppStrings {
     'toggle_list': _k('Toggle list', 'បើក/បិទបញ្ជី'),
     'switch_language': _k('Switch language', 'ប្តូរភាសា'),
     // ── Delivery channel + OTP verification ──
+    'sending_code': _k('Sending code...', 'កំពុងផ្ញើលេខកូដ...'),
+    'phone_invalid': _k(
+      'Please enter a valid phone number, or tap Skip for now',
+      'សូមបញ្ចូលលេខទូរសព្ទឲ្យត្រឹមត្រូវ ឬចុច «រំលងសិន»',
+    ),
+    'demo_fill': _k(
+      'Tap to auto-fill: {phone}',
+      'ចុចដើម្បីបំពេញស្វ័យប្រវត្តិ៖ {phone}',
+    ),
     'send_code': _k('Send Verification Code', 'ផ្ញើលេខកូដផ្ទៀងផ្ទាត់'),
     'ch_sms_card': _k('SMS Code', 'កូដតាមសារ'),
     'ch_wa_card': _k('WhatsApp', 'វ៉ាត់ស្អាប់'),
     'channel_sms': _k('SMS', 'សារ'),
     'channel_whatsapp': _k('WhatsApp', 'វ៉ាត់ស្អាប់'),
-    'otp_badge_sms': _k('SMS Verification', 'ការផ្ទៀងផ្ទាត់តាមសារ'),
-    'otp_badge_whatsapp': _k(
-      'WhatsApp Verification',
-      'ការផ្ទៀងផ្ទាត់តាមវ៉ាត់ស្អាប់',
-    ),
     'otp_title': _k('Verify your number', 'ផ្ទៀងផ្ទាត់លេខទូរសព្ទ'),
     'otp_sub': _k(
-      'We sent a 6-digit code via {channel} to {phone}',
-      'យើងបានផ្ញើលេខកូដ ៦ ខ្ទង់ តាម{channel} ទៅកាន់ {phone}',
+      'Enter the 6-digit code we sent via {channel} to',
+      'បញ្ចូលលេខកូដ ៦ ខ្ទង់ ដែលយើងបានផ្ញើតាម{channel} ទៅកាន់',
+    ),
+    'otp_incomplete': _k(
+      'Enter all 6 digits of the code',
+      'សូមបញ្ចូលលេខកូដទាំង ៦ ខ្ទង់',
     ),
     'edit': _k('Edit', 'កែប្រែ'),
     'otp_invalid': _k(

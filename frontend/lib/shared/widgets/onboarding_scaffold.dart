@@ -50,6 +50,7 @@ class OnboardingScaffold extends StatelessWidget {
     required this.buttonLabel,
     required this.onNext,
     this.buttonIcon,
+    this.buttonChild,
     this.logoSize = 120,
     this.showLanguagePill = true,
     this.footer,
@@ -63,6 +64,9 @@ class OnboardingScaffold extends StatelessWidget {
 
   /// Optional trailing icon on the CTA (e.g. an arrow).
   final IconData? buttonIcon;
+
+  /// Replaces the label (e.g. a spinner + "Sending…" while busy).
+  final Widget? buttonChild;
   final double logoSize;
   final bool showLanguagePill;
 
@@ -94,10 +98,11 @@ class OnboardingScaffold extends StatelessWidget {
     // The only clickable element: solid deep-blue pill (hover lift, trailing
     // arrow nudge, press sink, haptic).
     final Widget button0 = AppInteractiveButton(
-      label: buttonLabel,
+      label: buttonChild == null ? buttonLabel : null,
       trailingIcon: buttonIcon,
       onPressed: onNext,
       colors: AppButtonColors.primary,
+      child: buttonChild,
     );
     Widget button = button0;
     if (decorateButton != null) button = decorateButton!(button);
@@ -108,44 +113,53 @@ class OnboardingScaffold extends StatelessWidget {
       body: LiquidAmbientCanvas(
         child: Column(
           children: [
-            SizedBox(
-              height: headerH + logoSize / 2,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.topCenter,
-                children: [
-                  ClipPath(
-                    clipper: const _ArcClipper(),
-                    child: Container(
-                      height: headerH,
-                      width: double.infinity,
-                      color: AppColors.blueDeep,
+            // Header + body scroll together; the footer link and the CTA stay
+            // pinned below. With the keyboard open the content scrolls instead
+            // of overflowing, and the button is never pushed off-screen.
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: headerH + logoSize / 2,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        alignment: Alignment.topCenter,
+                        children: [
+                          ClipPath(
+                            clipper: const _ArcClipper(),
+                            child: Container(
+                              height: headerH,
+                              width: double.infinity,
+                              color: AppColors.blueDeep,
+                            ),
+                          ),
+                          if (showLanguagePill)
+                            Positioned(
+                              top: media.padding.top + 16,
+                              child: const Hero(
+                                tag: OnboardingHero.langPill,
+                                // Heroes fly in the overlay, which has no Material.
+                                child: Material(
+                                  type: MaterialType.transparency,
+                                  child: LanguagePill(),
+                                ),
+                              ),
+                            ),
+                          Positioned(bottom: 0, child: logo),
+                        ],
+                      ),
                     ),
-                  ),
-                  if (showLanguagePill)
-                    Positioned(
-                      top: media.padding.top + 16,
-                      child: const Hero(
-                        tag: OnboardingHero.langPill,
-                        // Heroes fly in the overlay, which has no Material.
-                        child: Material(
-                          type: MaterialType.transparency,
-                          child: LanguagePill(),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 480),
+                          child: body,
                         ),
                       ),
                     ),
-                  Positioned(bottom: 0, child: logo),
-                ],
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 480),
-                    child: body,
-                  ),
+                  ],
                 ),
               ),
             ),

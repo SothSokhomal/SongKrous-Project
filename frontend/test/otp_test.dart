@@ -53,12 +53,12 @@ Future<ProviderContainer> boot(
   final c = ProviderContainer();
   addTearDown(c.dispose);
   c.read(langProvider.notifier).set(lang);
-  if (phone.isNotEmpty) c.read(userPhoneProvider.notifier).set(phone);
+  if (phone.isNotEmpty) c.read(authProfileProvider.notifier).setPhone(phone);
   appRouter.go(route);
   await tester.pumpWidget(
     UncontrolledProviderScope(container: c, child: const SongkrousApp()),
   );
-  await ms(tester, 700);
+  await ms(tester, 500);
   return c;
 }
 
@@ -78,6 +78,7 @@ Future<void> enter(WidgetTester t, String code) async {
 }
 
 void main() {
+  khmerEnterNumberScan();
   group('phone formatting', () {
     test('groups, drops the trunk 0, accepts Khmer numerals', () {
       expect(groupPhone('12855706'), '12 855 706');
@@ -91,51 +92,171 @@ void main() {
   });
 
   group('02 enter the number', () {
-    testWidgets('CTA disabled until a valid number; formats as you type', (
+    testWidgets(
+      'the button is never dead: invalid → shake, heavy haptic, prompt',
+      (tester) async {
+        await boot(tester);
+        final btn = find.text('Send Verification Code');
+        expect(find.byKey(const ValueKey('phone-error')), findsNothing);
+
+        // Empty field.
+        await tester.tap(btn);
+        await tester.pump(const Duration(milliseconds: 60));
+        expect(haptics, contains('heavyImpact'));
+        expect(
+          find.text('Please enter a valid phone number, or tap Skip for now'),
+          findsOneWidget,
+        );
+        // Mid-shake the input row is displaced, then settles back.
+        final field = find.byType(TextField);
+        final x0 = tester.getTopLeft(field).dx;
+        await tester.pump(const Duration(milliseconds: 40));
+        expect(tester.getTopLeft(field).dx, isNot(closeTo(x0, 0.01)));
+        await ms(tester, 500);
+        expect(tester.getTopLeft(field).dx, closeTo(x0, 0.5));
+        expect(currentPath(), AppRoutes.enterNumber);
+
+        // Too short is still handled, not ignored.
+        haptics.clear();
+        await tester.enterText(field, '12345');
+        await tester.pump();
+        await tester.tap(btn);
+        await ms(tester, 100);
+        expect(haptics, contains('heavyImpact'));
+        expect(currentPath(), AppRoutes.enterNumber);
+
+        // Becoming valid clears the prompt.
+        await tester.enterText(field, '12855706');
+        await ms(tester, 300);
+        expect(find.byKey(const ValueKey('phone-error')), findsNothing);
+      },
+    );
+
+    testWidgets('accepts 012 855 706 / 12 855 706 / 012855706 / 8-10 digits', (
       tester,
     ) async {
       final c = await boot(tester);
-      expect(find.text('Send Verification Code'), findsOneWidget);
-      expect(find.text('SMS Code'), findsOneWidget);
-      expect(find.text('WhatsApp'), findsOneWidget);
-
-      // Disabled: tapping does nothing.
-      await tester.tap(find.text('Send Verification Code'));
-      await ms(tester, 400);
-      expect(currentPath(), AppRoutes.enterNumber);
-
-      await tester.enterText(find.byType(TextField), '12855706');
-      await ms(tester, 200);
-      expect(phoneText(tester), '12 855 706');
-      expect(c.read(userPhoneProvider), '12855706');
-
-      await tester.tap(find.text('Send Verification Code'));
-      await ms(tester, 600);
-      expect(currentPath(), AppRoutes.otp);
+      for (final typed in ['012 855 706', '12 855 706', '012855706']) {
+        await tester.enterText(find.byType(TextField), typed);
+        await tester.pump();
+        expect(c.read(userPhoneProvider), '12855706', reason: typed);
+      }
+      // Display keeps what was typed, spaced automatically.
+      await tester.enterText(find.byType(TextField), '012855706');
+      await tester.pump();
+      expect(phoneText(tester), '012 855 706');
+      await tester.enterText(find.byType(TextField), '0128557061');
+      await tester.pump();
+      expect(c.read(userPhoneProvider), '128557061');
+      expect(isValidPhone(c.read(userPhoneProvider)), isTrue);
     });
 
-    testWidgets('SMS is the default; WhatsApp can be chosen', (tester) async {
+    testWidgets('valid number: 350 ms "Sending code…", saved, → OTP', (
+      tester,
+    ) async {
       final c = await boot(tester);
-      expect(c.read(otpChannelProvider), OtpChannel.sms);
+      await tester.enterText(find.byType(TextField), '12 855 706');
+      await tester.pump();
+      await tester.tap(find.text('Send Verification Code'));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Sending code...'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(currentPath(), AppRoutes.enterNumber);
+
+      // A second tap while sending is ignored.
+      await tester.tap(find.text('Sending code...'));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      await ms(tester, 700);
+      expect(currentPath(), AppRoutes.otp);
+      final p = c.read(authProfileProvider);
+      expect(p.phone, '12855706');
+      expect(p.channel, OtpChannel.sms);
+      expect(p.isLoggedIn, isFalse);
+      expect(find.textContaining('+855 12 855 706'), findsOneWidget);
+    });
+
+    testWidgets('WhatsApp choice is carried to the OTP screen', (tester) async {
+      final c = await boot(tester);
+      await tester.enterText(find.byType(TextField), '12855706');
       await tester.ensureVisible(
         find.byKey(const ValueKey('channel-whatsapp')),
       );
       await tester.tap(find.byKey(const ValueKey('channel-whatsapp')));
       await ms(tester, 300);
-      expect(c.read(otpChannelProvider), OtpChannel.whatsapp);
-      await tester.ensureVisible(find.byKey(const ValueKey('channel-sms')));
-      await tester.tap(find.byKey(const ValueKey('channel-sms')));
-      await ms(tester, 300);
-      expect(c.read(otpChannelProvider), OtpChannel.sms);
+      await tester.tap(find.text('Send Verification Code'));
+      await ms(tester, 1000);
+      expect(currentPath(), AppRoutes.otp);
+      expect(c.read(authProfileProvider).channel, OtpChannel.whatsapp);
+      expect(
+        find.text('Enter the 6-digit code we sent via WhatsApp to'),
+        findsOneWidget,
+      );
+      expect(find.text('From WhatsApp'), findsOneWidget);
     });
 
-    testWidgets('Skip for now goes straight to GPS (never blocked)', (
+    testWidgets('demo chip fills 012 855 706 in one tap', (tester) async {
+      final c = await boot(tester);
+      expect(find.text('Tap to auto-fill: 012 855 706'), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const ValueKey('demo-chip')));
+      await tester.tap(find.byKey(const ValueKey('demo-chip')));
+      await ms(tester, 200);
+      expect(phoneText(tester), '012 855 706');
+      expect(c.read(userPhoneProvider), '12855706');
+    });
+
+    testWidgets('tapping outside the field dismisses the keyboard', (
       tester,
     ) async {
       await boot(tester);
+      await tester.tap(find.byType(TextField));
+      await tester.pump();
+      expect(tester.testTextInput.isVisible, isTrue);
+      await tester.tapAt(const Offset(180, 300)); // header area
+      await tester.pump();
+      expect(tester.testTextInput.isVisible, isFalse);
+    });
+
+    testWidgets('CTA stays on-screen and tappable with the keyboard open', (
+      tester,
+    ) async {
+      await boot(tester, size: const Size(960, 1704)); // 320x568 (iPhone SE)
+      tester.view.viewInsets = const FakeViewPadding(bottom: 300 * 3);
+      addTearDown(tester.view.resetViewInsets);
+      await tester.pump(const Duration(milliseconds: 300));
+      final r = tester.getRect(find.text('Send Verification Code'));
+      expect(r.bottom, lessThanOrEqualTo(568 - 300 + 0.5));
+      expect(r.top, greaterThanOrEqualTo(0));
+      expect(tester.takeException(), isNull);
+      await tester.enterText(find.byType(TextField), '12855706');
+      await tester.tap(find.text('Send Verification Code'));
+      await ms(tester, 1000);
+      expect(currentPath(), AppRoutes.otp);
+    });
+
+    testWidgets('SMS is the default; WhatsApp can be chosen', (tester) async {
+      final c = await boot(tester);
+      expect(c.read(authProfileProvider).channel, OtpChannel.sms);
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('channel-whatsapp')),
+      );
+      await tester.tap(find.byKey(const ValueKey('channel-whatsapp')));
+      await ms(tester, 300);
+      expect(c.read(authProfileProvider).channel, OtpChannel.whatsapp);
+      await tester.ensureVisible(find.byKey(const ValueKey('channel-sms')));
+      await tester.tap(find.byKey(const ValueKey('channel-sms')));
+      await ms(tester, 300);
+      expect(c.read(authProfileProvider).channel, OtpChannel.sms);
+    });
+
+    testWidgets('Skip for now goes straight to GPS in guest mode', (
+      tester,
+    ) async {
+      final c = await boot(tester);
       await tester.tap(find.text('Skip for now'));
       await ms(tester, 600);
       expect(currentPath(), AppRoutes.gps);
+      expect(c.read(authProfileProvider).isGuest, isTrue);
     });
 
     testWidgets('Khmer: Khmer numerals while typing, Khmer labels only', (
@@ -157,7 +278,10 @@ void main() {
       tester,
     ) async {
       await boot(tester, route: AppRoutes.otp, phone: '12855706');
-      expect(find.text('SMS Verification'), findsOneWidget);
+      expect(
+        find.text('Enter the 6-digit code we sent via SMS to'),
+        findsOneWidget,
+      );
       expect(find.text('Verify your number'), findsOneWidget);
       expect(find.textContaining('+855 12 855 706'), findsOneWidget);
       expect(find.text('Edit'), findsOneWidget);
@@ -166,6 +290,7 @@ void main() {
       }
       expect(find.byKey(const ValueKey('otp-caret')), findsOneWidget);
       expect(find.text('Verify & Continue'), findsOneWidget);
+      // Full strength — never a dead button.
       expect(
         tester
             .widget<AnimatedOpacity>(
@@ -174,9 +299,24 @@ void main() {
                   .first,
             )
             .opacity,
-        0.5,
+        1.0,
       );
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('tapping Verify with an incomplete code: shake + prompt', (
+      tester,
+    ) async {
+      await boot(tester, route: AppRoutes.otp, phone: '12855706');
+      await tester.tap(cta);
+      await tester.pump(const Duration(milliseconds: 60));
+      expect(haptics, contains('heavyImpact'));
+      expect(find.text('Enter all 6 digits of the code'), findsOneWidget);
+      await ms(tester, 500);
+      await enter(tester, '1');
+      await tester.pump();
+      expect(find.text('Enter all 6 digits of the code'), findsNothing);
+      expect(currentPath(), AppRoutes.otp);
     });
 
     testWidgets('typing fills boxes; a digit pops; backspace works', (
@@ -198,7 +338,8 @@ void main() {
     testWidgets('6th digit auto-verifies; 123456 succeeds → GPS', (
       tester,
     ) async {
-      await boot(tester, route: AppRoutes.otp, phone: '12855706');
+      final c = await boot(tester, route: AppRoutes.otp, phone: '12855706');
+      expect(c.read(authProfileProvider).isLoggedIn, isFalse);
       await enter(tester, '123456');
       expect(haptics, contains('lightImpact'));
       expect(find.text('Verifying...'), findsOneWidget);
@@ -211,6 +352,7 @@ void main() {
 
       await ms(tester, 900); // 500 ms, then route transition
       expect(currentPath(), AppRoutes.gps);
+      expect(c.read(authProfileProvider).isLoggedIn, isTrue);
       expect(tester.takeException(), isNull);
     });
 
@@ -259,7 +401,7 @@ void main() {
       expect(currentPath(), AppRoutes.otp);
     });
 
-    testWidgets('AutoFill banner: appears at 800 ms, fills, verifies', (
+    testWidgets('AutoFill banner: appears at 700 ms, fills, verifies', (
       tester,
     ) async {
       await boot(tester, route: AppRoutes.otp, phone: '12855706');
@@ -269,10 +411,7 @@ void main() {
         tester
             .widget<AnimatedOpacity>(
               find
-                  .ancestor(
-                    of: banner,
-                    matching: find.byType(AnimatedOpacity),
-                  )
+                  .ancestor(of: banner, matching: find.byType(AnimatedOpacity))
                   .first,
             )
             .opacity,
@@ -281,16 +420,12 @@ void main() {
       expect(find.text('From SMS'), findsOneWidget);
       expect(find.text('Your Songkrous code is 123456'), findsOneWidget);
       expect(find.text('Auto-Fill'), findsOneWidget);
-      await ms(tester, 500); // 700 + 500 > 800
-      await tester.pump(const Duration(milliseconds: 500));
+      await ms(tester, 900); // 500 + 900 > 700 + 240 slide-in
       expect(
         tester
             .widget<AnimatedOpacity>(
               find
-                  .ancestor(
-                    of: banner,
-                    matching: find.byType(AnimatedOpacity),
-                  )
+                  .ancestor(of: banner, matching: find.byType(AnimatedOpacity))
                   .first,
             )
             .opacity,
@@ -346,8 +481,11 @@ void main() {
       await ms(tester, 31000);
       await tester.tap(find.text('Try WhatsApp instead'));
       await ms(tester, 700);
-      expect(c.read(otpChannelProvider), OtpChannel.whatsapp);
-      expect(find.text('WhatsApp Verification'), findsOneWidget);
+      expect(c.read(authProfileProvider).channel, OtpChannel.whatsapp);
+      expect(
+        find.text('Enter the 6-digit code we sent via WhatsApp to'),
+        findsOneWidget,
+      );
       expect(find.text('From WhatsApp'), findsOneWidget);
       expect(tester.widget<TextField>(otpField).controller!.text, '');
       expect(find.text("Didn't get the code? Resend in 00:30"), findsOneWidget);
@@ -388,13 +526,13 @@ void main() {
       await boot(tester, phone: '12855706');
       await tester.tap(find.text('Send Verification Code'));
       await ms(tester, 700);
-      await tester.tap(find.text('Back'));
+      await tester.tap(find.byKey(const ValueKey('otp-back')));
       await ms(tester, 700);
       expect(currentPath(), AppRoutes.enterNumber);
 
       await tester.tap(find.text('Send Verification Code'));
       await ms(tester, 700);
-      await tester.tap(find.text('Skip'));
+      await tester.tap(find.byKey(const ValueKey('otp-skip')));
       await ms(tester, 700);
       expect(currentPath(), AppRoutes.gps);
     });
@@ -404,7 +542,7 @@ void main() {
     ) async {
       await boot(tester, route: AppRoutes.otp, phone: '12855706');
       await enter(tester, '123456'); // verify timer pending
-      await tester.tap(find.text('Skip'));
+      await tester.tap(find.byKey(const ValueKey('otp-skip')));
       await ms(tester, 1500);
       expect(currentPath(), AppRoutes.gps);
       expect(tester.takeException(), isNull);
@@ -475,5 +613,37 @@ void main() {
       expect(find.text('1'), findsNothing);
       expect(find.textContaining('+៨៥៥'), findsOneWidget);
     });
+  });
+}
+
+void khmerEnterNumberScan() {
+  testWidgets('Khmer enter-number: prompt, chip, sending — no Latin', (
+    tester,
+  ) async {
+    await boot(tester, lang: AppLang.km);
+    await tester.tap(find.text('ផ្ញើលេខកូដផ្ទៀងផ្ទាត់'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(
+      find.text('សូមបញ្ចូលលេខទូរសព្ទឲ្យត្រឹមត្រូវ ឬចុច «រំលងសិន»'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('ចុចដើម្បីបំពេញស្វ័យប្រវត្តិ៖ ០១២ ៨៥៥ ៧០៦'),
+      findsOneWidget,
+    );
+    await tester.ensureVisible(find.byKey(const ValueKey('demo-chip')));
+    await tester.tap(find.byKey(const ValueKey('demo-chip')));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.text('ផ្ញើលេខកូដផ្ទៀងផ្ទាត់'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('កំពុងផ្ញើលេខកូដ...'), findsOneWidget);
+    final latin = RegExp(r'[A-Za-z0-9]');
+    final bad = [
+      for (final w in tester.widgetList<Text>(find.byType(Text)))
+        if (latin.hasMatch(w.data ?? w.textSpan?.toPlainText() ?? ''))
+          w.data ?? w.textSpan!.toPlainText(),
+    ];
+    expect(bad.where((t) => !t.contains('EN') && t != 'English'), isEmpty);
+    await ms(tester, 800);
   });
 }

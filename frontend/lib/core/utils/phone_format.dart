@@ -32,6 +32,21 @@ String groupPhone(String digits) {
   return '${d.substring(0, 2)} ${d.substring(2, 5)} ${d.substring(5)}';
 }
 
+/// What the field shows while typing: keeps a typed trunk `0`
+/// (`012 855 706`) or none (`12 855 706`); spaces are inserted automatically,
+/// and at most 10 / 9 digits are kept.
+String formatPhoneInput(String input) {
+  var d = asciiDigits(input).replaceAll(RegExp(r'[^0-9]'), '');
+  final trunk = d.startsWith('0');
+  final max = trunk ? 10 : 9;
+  if (d.length > max) d = d.substring(0, max);
+  if (!trunk) return groupPhone(d);
+  // 0XX XXX XXX(X)
+  if (d.length <= 3) return d;
+  if (d.length <= 6) return '${d.substring(0, 3)} ${d.substring(3)}';
+  return '${d.substring(0, 3)} ${d.substring(3, 6)} ${d.substring(6)}';
+}
+
 /// Valid enough for the prototype: 8–9 national digits.
 bool isValidPhone(String digits) => digits.length >= 8 && digits.length <= 9;
 
@@ -49,10 +64,7 @@ class PhoneInputFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    final text = AppStrings.digits(
-      groupPhone(cleanPhoneDigits(newValue.text)),
-      lang,
-    );
+    final text = AppStrings.digits(formatPhoneInput(newValue.text), lang);
     return TextEditingValue(
       text: text,
       selection: TextSelection.collapsed(offset: text.length),
