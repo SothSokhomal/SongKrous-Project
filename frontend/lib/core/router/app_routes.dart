@@ -3,6 +3,7 @@ abstract final class AppRoutes {
   static const splash = '/';
   static const onboarding = '/onboarding';
   static const enterNumber = '/enter-number';
+  static const otp = '/otp-verification';
   static const gps = '/gps-permission';
 
   // Full-screen emergency flow (outside the tab shell)

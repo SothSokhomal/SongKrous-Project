@@ -16,6 +16,7 @@ void main() {
     AppRoutes.splash,
     AppRoutes.onboarding,
     AppRoutes.enterNumber,
+    AppRoutes.otp,
     AppRoutes.gps,
     AppRoutes.home,
     AppRoutes.map,

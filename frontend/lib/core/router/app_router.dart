@@ -13,6 +13,7 @@ import '../../features/map/nearby_map_screen.dart';
 import '../../features/onboarding/enter_number_screen.dart';
 import '../../features/onboarding/gps_permission_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
+import '../../features/onboarding/otp_verification_screen.dart';
 import '../../features/onboarding/splash_screen.dart';
 import '../../features/safety/safety_input_screen.dart';
 import '../../features/safety/safety_tips_screen.dart';
@@ -50,6 +51,13 @@ final GoRouter appRouter = GoRouter(
         state: s,
         child: const EnterNumberScreen(),
         slide: false,
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.otp,
+      pageBuilder: (_, s) => buildIosPageTransition(
+        state: s,
+        child: const OtpVerificationScreen(),
       ),
     ),
     // The screen animates its own backdrop + alert.
