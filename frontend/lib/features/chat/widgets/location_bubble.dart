@@ -3,14 +3,22 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_state.dart';
+import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/chat_message.dart';
 import 'message_bubbles.dart';
 import 'status_ticks.dart';
 
-String formatCoordinates(double lat, double lng) =>
-    '${lat.abs().toStringAsFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, '
-    '${lng.abs().toStringAsFixed(4)}° ${lng >= 0 ? 'E' : 'W'}';
+String formatCoordinates(double lat, double lng, [AppLang l = AppLang.en]) {
+  final km = l == AppLang.km;
+  final n = km ? 'ជើង' : 'N', so = km ? 'ត្បូង' : 'S';
+  final e = km ? 'កើត' : 'E', w = km ? 'លិច' : 'W';
+  return AppStrings.digits(
+    '${lat.abs().toStringAsFixed(4)}° ${lat >= 0 ? n : so}, '
+    '${lng.abs().toStringAsFixed(4)}° ${lng >= 0 ? e : w}',
+    l,
+  );
+}
 
 /// Telegram-style live-location card: a 130 px map preview with a centred pin,
 /// the address, the coordinates and a `Live Location ✓✓` footer.
@@ -100,7 +108,7 @@ class LocationBubble extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  message.addressLabel ?? '',
+                  message.addressFor(ref.watch(langProvider)) ?? '',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -112,7 +120,11 @@ class LocationBubble extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  formatCoordinates(pos.latitude, pos.longitude),
+                  formatCoordinates(
+                    pos.latitude,
+                    pos.longitude,
+                    ref.watch(langProvider),
+                  ),
                   style: TextStyle(fontSize: 12, height: 1.4, color: sub),
                 ),
                 const SizedBox(height: 4),
@@ -132,7 +144,7 @@ class LocationBubble extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      formatTime(message.timestamp),
+                      formatTime(message.timestamp, ref.watch(langProvider)),
                       style: TextStyle(fontSize: 10.5, color: sub),
                     ),
                     if (me) ...[

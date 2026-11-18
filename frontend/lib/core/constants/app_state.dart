@@ -16,4 +16,7 @@ final langProvider = NotifierProvider<LangNotifier, AppLang>(LangNotifier.new);
 /// Translate helper: `ref.tr('sos')`.
 extension TrRef on WidgetRef {
   String tr(String key) => AppStrings.of(key, watch(langProvider));
+
+  /// Numbers in the current language's numerals (Khmer digits in KH mode).
+  String num(String s) => AppStrings.digits(s, watch(langProvider));
 }

@@ -60,7 +60,7 @@ void main() {
     expect(find.text('ជំនួយសង្គ្រោះបន្ទាន់ កាន់តែងាយស្រួល'), findsOneWidget);
     expect(find.text('ស្វែងយល់ពីមុខងារសំខាន់ៗរបស់សង្គ្រោះ'), findsOneWidget);
     expect(find.text('ជំនួយដោយចុចតែម្តង'), findsOneWidget);
-    expect(find.text('កំណត់ទីតាំង GPS ស្វ័យប្រវត្តិ'), findsOneWidget);
+    expect(find.text('កំណត់ទីតាំងដោយស្វ័យប្រវត្តិ'), findsOneWidget);
     expect(find.text('ការណែនាំសង្គ្រោះបឋម'), findsOneWidget);
     expect(find.text('បន្ត'), findsOneWidget);
   });

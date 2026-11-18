@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/theme/app_colors.dart';
+import 'liquid_glass.dart';
 
 /// Brand card: rounded white square showing the official logo
 /// (`assets/images/logo.png`). If the asset is missing or fails to load, a
@@ -44,21 +45,14 @@ class SongkrousLogo extends StatelessWidget {
         return Semantics(
           label: 'Songkrous',
           image: true,
-          child: Container(
+          // Frosted glass card with a specular rim (near-opaque so the logo
+          // artwork stays crisp).
+          child: LiquidGlassContainer(
+            radius: s * _radius,
+            tint: LiquidTint.frostStrong,
+            useBlur: false,
             width: s,
             height: s,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(s * _radius),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.blueDark.withValues(alpha: 0.22),
-                  blurRadius: s * 0.22,
-                  offset: Offset(0, s * 0.08),
-                ),
-              ],
-            ),
-            clipBehavior: Clip.antiAlias,
             padding: assetPath != null ? null : EdgeInsets.all(s * 0.08),
             child: assetPath != null
                 ? Transform.scale(

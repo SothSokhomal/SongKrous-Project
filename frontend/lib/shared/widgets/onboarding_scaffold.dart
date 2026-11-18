@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import 'app_interactive.dart';
 import 'language_toggle.dart';
+import 'liquid_glass.dart';
 import 'songkrous_logo.dart';
 
 /// Hero tags shared by splash → onboarding → enter-number so the logo glides
@@ -102,66 +103,68 @@ class OnboardingScaffold extends StatelessWidget {
     if (decorateButton != null) button = decorateButton!(button);
 
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: true,
-      body: Column(
-        children: [
-          SizedBox(
-            height: headerH + logoSize / 2,
-            child: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.topCenter,
-              children: [
-                ClipPath(
-                  clipper: const _ArcClipper(),
-                  child: Container(
-                    height: headerH,
-                    width: double.infinity,
-                    color: AppColors.blueDeep,
-                  ),
-                ),
-                if (showLanguagePill)
-                  Positioned(
-                    top: media.padding.top + 16,
-                    child: const Hero(
-                      tag: OnboardingHero.langPill,
-                      // Heroes fly in the overlay, which has no Material.
-                      child: Material(
-                        type: MaterialType.transparency,
-                        child: LanguagePill(),
-                      ),
+      body: LiquidAmbientCanvas(
+        child: Column(
+          children: [
+            SizedBox(
+              height: headerH + logoSize / 2,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.topCenter,
+                children: [
+                  ClipPath(
+                    clipper: const _ArcClipper(),
+                    child: Container(
+                      height: headerH,
+                      width: double.infinity,
+                      color: AppColors.blueDeep,
                     ),
                   ),
-                Positioned(bottom: 0, child: logo),
-              ],
+                  if (showLanguagePill)
+                    Positioned(
+                      top: media.padding.top + 16,
+                      child: const Hero(
+                        tag: OnboardingHero.langPill,
+                        // Heroes fly in the overlay, which has no Material.
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: LanguagePill(),
+                        ),
+                      ),
+                    ),
+                  Positioned(bottom: 0, child: logo),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 480),
-                  child: body,
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 480),
+                    child: body,
+                  ),
                 ),
               ),
             ),
-          ),
-          ?footer,
-          SafeArea(
-            top: false,
-            minimum: const EdgeInsets.only(bottom: 16),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 480),
-                  child: button,
+            ?footer,
+            SafeArea(
+              top: false,
+              minimum: const EdgeInsets.only(bottom: 16),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 480),
+                    child: button,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,6 +25,9 @@ class ChatHeader extends ConsumerWidget {
   final VoidCallback onSendLocation;
   final VoidCallback onCall;
 
+  /// Height of the header content below the status bar (rows + padding).
+  static const double contentHeight = 55;
+
   static const _iconColors = AppButtonColors(
     bg: Color(0xFFF1F5F9),
     hover: Color(0xFFE2E8F0),
@@ -35,108 +40,125 @@ class ChatHeader extends ConsumerWidget {
     final lang = ref.watch(langProvider);
     final ring = facilityColor(facility.type);
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(4, 6, 10, 8),
-          child: Row(
-            children: [
-              AppPressFade(
-                semanticLabel: ref.tr('back'),
-                padding: const EdgeInsets.all(6),
-                onTap: onBack,
-                child: const Icon(
-                  Icons.chevron_left_rounded,
-                  size: 32,
-                  color: AppColors.blue,
-                ),
-              ),
-              // Avatar with colour ring + green "connected" dot.
-              Stack(
-                clipBehavior: Clip.none,
+    // Translucent Liquid Glass: messages scrolling underneath blur softly
+    // behind the header.
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.white.withValues(alpha: 0.88),
+                Colors.white.withValues(alpha: 0.74),
+              ],
+            ),
+            border: const Border(bottom: BorderSide(color: Color(0xCCE2E8F0))),
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(4, 6, 10, 8),
+              child: Row(
                 children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: ring, width: 2),
-                    ),
-                    child: Icon(
-                      facilityIcon(facility.type),
-                      color: ring,
-                      size: 20,
+                  AppPressFade(
+                    semanticLabel: ref.tr('back'),
+                    padding: const EdgeInsets.all(6),
+                    onTap: onBack,
+                    child: const Icon(
+                      Icons.chevron_left_rounded,
+                      size: 32,
+                      color: AppColors.blue,
                     ),
                   ),
-                  Positioned(
-                    right: -1,
-                    bottom: -1,
-                    child: Container(
-                      width: 11,
-                      height: 11,
-                      decoration: BoxDecoration(
-                        color: AppColors.success,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.white, width: 2),
+                  // Avatar with colour ring + green "connected" dot.
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: ring, width: 2),
+                        ),
+                        child: Icon(
+                          facilityIcon(facility.type),
+                          color: ring,
+                          size: 20,
+                        ),
                       ),
+                      Positioned(
+                        right: -1,
+                        bottom: -1,
+                        child: Container(
+                          width: 11,
+                          height: 11,
+                          decoration: BoxDecoration(
+                            color: AppColors.success,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.white,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          facility.name(lang),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.ink,
+                            height: 1.35,
+                            fontFamilyFallback: ['Noto Sans Khmer'],
+                          ),
+                        ),
+                        Text(
+                          ref
+                              .tr('chat_connected')
+                              .replaceAll('{phone}', ref.num(facility.phone)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.slate,
+                            height: 1.4,
+                            fontFamilyFallback: ['Noto Sans Khmer'],
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(width: 6),
+                  _IconAction(
+                    icon: Icons.location_on_rounded,
+                    tooltip: ref.tr('send_my_location'),
+                    onPressed: onSendLocation,
+                    color: AppColors.red,
+                  ),
+                  const SizedBox(width: 8),
+                  _IconAction(
+                    icon: Icons.phone_rounded,
+                    tooltip: ref.tr('call_dispatch'),
+                    onPressed: onCall,
+                    color: AppColors.blueDeep,
                   ),
                 ],
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      facility.name(lang),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.ink,
-                        height: 1.35,
-                        fontFamilyFallback: ['Noto Sans Khmer'],
-                      ),
-                    ),
-                    Text(
-                      ref
-                          .tr('chat_connected')
-                          .replaceAll('{phone}', facility.phone),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.slate,
-                        height: 1.4,
-                        fontFamilyFallback: ['Noto Sans Khmer'],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 6),
-              _IconAction(
-                icon: Icons.location_on_rounded,
-                tooltip: ref.tr('send_my_location'),
-                onPressed: onSendLocation,
-                color: AppColors.red,
-              ),
-              const SizedBox(width: 8),
-              _IconAction(
-                icon: Icons.phone_rounded,
-                tooltip: ref.tr('call_dispatch'),
-                onPressed: onCall,
-                color: AppColors.blueDeep,
-              ),
-            ],
+            ),
           ),
         ),
       ),

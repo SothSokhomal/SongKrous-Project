@@ -79,15 +79,16 @@ void main() {
       expect(find.text('ភាសាខ្មែរ'), findsOneWidget);
 
       await tapAndSettle(find.text('បន្ត'));
-      expect(find.text('+855', findRichText: true), findsNothing); // sanity
-      expect(find.textContaining('+855'), findsOneWidget);
+      expect(find.textContaining('+855'), findsNothing); // no Latin digits
+      expect(find.textContaining('+៨៥៥'), findsOneWidget);
 
       await tapAndSettle(find.text('រំលងសិន')); // Skip for now
       expect(find.text('មិនអនុញ្ញាត'), findsOneWidget); // Don't Allow
 
       await tapAndSettle(find.text('មិនអនុញ្ញាត'));
-      expect(find.text('SONGKROUS'), findsOneWidget);
-      expect(find.text('GPS បិទ'), findsOneWidget);
+      expect(find.text('សង្គ្រោះ'), findsOneWidget);
+      expect(find.text('ទីតាំងបិទ'), findsOneWidget);
+      expect(find.textContaining('GPS'), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );

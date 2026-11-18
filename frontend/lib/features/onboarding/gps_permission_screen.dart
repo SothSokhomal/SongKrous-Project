@@ -10,6 +10,7 @@ import '../../core/router/app_routes.dart';
 import '../../core/state/location_state.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/app_interactive.dart';
+import '../../shared/widgets/liquid_glass.dart';
 import '../../shared/widgets/songkrous_logo.dart';
 
 /// 02_GPS_Permission — iOS-style alert over a blurred map backdrop.
@@ -103,12 +104,11 @@ class _GpsPermissionScreenState extends ConsumerState<GpsPermissionScreen>
   Widget _alertCard(BuildContext context) {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 300),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.96),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        clipBehavior: Clip.antiAlias,
+      // iOS 26 alert material: strong frosted Liquid Glass over the blurred map.
+      child: LiquidGlassContainer(
+        radius: 26,
+        sigma: 30,
+        tint: LiquidTint.frostStrong,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -177,9 +177,9 @@ class _DialogButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
           decoration: BoxDecoration(
             color: pressed
-                ? const Color(0xFFE2E8F0)
+                ? const Color(0x1A0F172A)
                 : hovered
-                ? const Color(0xFFF1F5F9)
+                ? const Color(0x0F0F172A)
                 : Colors.transparent,
             border: const Border(top: BorderSide(color: AppColors.border)),
           ),

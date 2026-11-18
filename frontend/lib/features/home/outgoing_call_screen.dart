@@ -11,6 +11,7 @@ import '../../core/router/app_routes.dart';
 import '../../core/state/location_state.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/app_interactive.dart';
+import '../../shared/widgets/liquid_glass.dart';
 
 class _Control {
   const _Control(this.icon, this.labelKey);
@@ -64,6 +65,7 @@ class _OutgoingCallScreenState extends ConsumerState<OutgoingCallScreen> {
 
   void _readLocation() {
     final loc = ref.read(locationProvider);
+    final lang = ref.read(langProvider);
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -73,15 +75,18 @@ class _OutgoingCallScreenState extends ConsumerState<OutgoingCallScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              loc.headline,
+              loc.headlineFor(lang),
               style: Theme.of(ctx).textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
-            Text(loc.khanLine, style: Theme.of(ctx).textTheme.bodyLarge),
+            Text(
+              loc.khanLineFor(lang),
+              style: Theme.of(ctx).textTheme.bodyLarge,
+            ),
             const SizedBox(height: 6),
             Text(
-              '${loc.latLng.latitude.toStringAsFixed(5)}, ${loc.latLng.longitude.toStringAsFixed(5)}',
+              loc.coordinatesFor(lang),
               style: Theme.of(ctx).textTheme.bodyMedium,
             ),
           ],
@@ -102,85 +107,91 @@ class _OutgoingCallScreenState extends ConsumerState<OutgoingCallScreen> {
     final title = widget.name.isEmpty ? widget.number : widget.name;
 
     return Scaffold(
-      backgroundColor: AppColors.callBackground,
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Column(
-                children: [
-                  const SizedBox(height: 48),
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: text.headlineMedium?.copyWith(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  _CallingLabel(
-                    label: ref.tr('calling'),
-                    style: text.bodyLarge?.copyWith(color: Colors.white60),
-                  ),
-                  const SizedBox(height: 40),
-                  GridView.count(
-                    crossAxisCount: 3,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    mainAxisSpacing: 20,
-                    crossAxisSpacing: 20,
-                    childAspectRatio: 0.9,
-                    children: [
-                      for (var i = 0; i < _controls.length; i++)
-                        _CallControl(
-                          control: _controls[i],
-                          label: ref.tr(_controls[i].labelKey),
-                          active: _active.contains(i),
-                          onTap: () => setState(() {
-                            _active.contains(i)
-                                ? _active.remove(i)
-                                : _active.add(i);
-                          }),
-                        ),
-                    ],
-                  ),
-                  const Spacer(),
-                  AppInteractiveButton(
-                    height: 42,
-                    expand: false,
-                    fontSize: 14,
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    leadingIcon: Icons.location_on_rounded,
-                    label: ref.tr('read_location'),
-                    colors: AppButtonColors.onDarkGlass,
-                    haptic: AppHaptic.light,
-                    onPressed: _readLocation,
-                  ),
-                  const SizedBox(height: 20),
-                  // Heavy haptic + press sink; hover grows it slightly.
-                  AppScaleButton(
-                    semanticLabel: 'End call',
-                    tooltip: 'End call',
-                    onTap: _hangUp,
-                    hoverScale: 1.06,
-                    pressScale: 0.92,
-                    haptic: AppHaptic.heavy,
-                    hapticOnDown: true,
-                    child: const CircleAvatar(
-                      radius: 36,
-                      backgroundColor: AppColors.red,
-                      child: Icon(
-                        Icons.call_end_rounded,
+      backgroundColor: Colors.transparent,
+      body: LiquidDarkCanvas(
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 48),
+                    Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: text.headlineMedium?.copyWith(
                         color: AppColors.white,
-                        size: 34,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 28),
-                ],
+                    const SizedBox(height: 6),
+                    _CallingLabel(
+                      label: ref.tr('calling'),
+                      style: text.bodyLarge?.copyWith(color: Colors.white60),
+                    ),
+                    const SizedBox(height: 40),
+                    GridView.count(
+                      crossAxisCount: 3,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      mainAxisSpacing: 20,
+                      crossAxisSpacing: 20,
+                      childAspectRatio: 0.9,
+                      children: [
+                        for (var i = 0; i < _controls.length; i++)
+                          _CallControl(
+                            control: _controls[i],
+                            label: ref.tr(_controls[i].labelKey),
+                            active: _active.contains(i),
+                            onTap: () => setState(() {
+                              _active.contains(i)
+                                  ? _active.remove(i)
+                                  : _active.add(i);
+                            }),
+                          ),
+                      ],
+                    ),
+                    const Spacer(),
+                    AppInteractiveButton(
+                      height: 42,
+                      expand: false,
+                      fontSize: 14,
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      leadingIcon: Icons.location_on_rounded,
+                      label: ref.tr('read_location'),
+                      colors: AppButtonColors.glassDark,
+                      haptic: AppHaptic.light,
+                      onPressed: _readLocation,
+                    ),
+                    const SizedBox(height: 20),
+                    // Heavy haptic + press sink; hover grows it slightly.
+                    AppScaleButton(
+                      semanticLabel: ref.tr('end_call'),
+                      tooltip: ref.tr('end_call'),
+                      onTap: _hangUp,
+                      hoverScale: 1.06,
+                      pressScale: 0.92,
+                      haptic: AppHaptic.heavy,
+                      hapticOnDown: true,
+                      child: const LiquidGlassContainer(
+                        radius: 36,
+                        width: 72,
+                        height: 72,
+                        alignment: Alignment.center,
+                        tint: LiquidTint.red,
+                        useBlur: false,
+                        child: Icon(
+                          Icons.call_end_rounded,
+                          color: AppColors.white,
+                          size: 34,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                  ],
+                ),
               ),
             ),
           ),
@@ -223,22 +234,16 @@ class _CallControl extends StatelessWidget {
                   ? 1.05
                   : 1.0,
               // Brightens on hover; inverts to solid white when toggled on.
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
+              child: LiquidGlassContainer(
+                radius: 34,
                 width: 68,
                 height: 68,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: active
-                      ? (hovered ? const Color(0xFFE2E8F0) : AppColors.white)
-                      : Colors.white.withValues(
-                          alpha: pressed
-                              ? 0.30
-                              : hovered
-                              ? 0.24
-                              : 0.14,
-                        ),
-                ),
+                alignment: Alignment.center,
+                // Smoked dark glass; toggled-on inverts to bright frosted glass.
+                tint: active ? LiquidTint.frostStrong : LiquidTint.dark,
+                useBlur: false,
+                hovered: hovered,
+                pressed: pressed,
                 child: Icon(
                   control.icon,
                   size: 28,

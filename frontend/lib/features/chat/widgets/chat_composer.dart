@@ -11,6 +11,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_interactive.dart';
 import '../models/chat_message.dart';
 import '../services/photo_source.dart';
+import '../../../shared/widgets/liquid_glass.dart';
 import 'attach_sheet.dart';
 import 'chat_photo.dart';
 
@@ -41,8 +42,6 @@ class ChatComposer extends ConsumerStatefulWidget {
 }
 
 class _ChatComposerState extends ConsumerState<ChatComposer> {
-  static const _pill = Color(0xFFF1F5F9);
-
   final _text = TextEditingController();
   final _focus = FocusNode();
   String? _photo;
@@ -182,11 +181,11 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
   Widget _composerPill() {
     final hint = _photo != null
         ? ref.tr('chat_caption_hint')
-        : ref.tr('chat_hint').replaceAll('{phone}', widget.phone);
+        : ref.tr('chat_hint').replaceAll('{phone}', ref.num(widget.phone));
     return AppFocusInput(
       key: const ValueKey('pill'),
       radius: 28,
-      fill: _pill,
+      glass: true,
       focusNode: _focus,
       builder: (context, node) => Padding(
         padding: const EdgeInsets.all(5),
@@ -291,14 +290,11 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
   }
 
   Widget _recordingBar() {
-    return Container(
+    return LiquidGlassContainer(
       key: const ValueKey('recording'),
-      height: 44,
+      radius: 28,
       padding: const EdgeInsets.fromLTRB(4, 0, 5, 0),
-      decoration: BoxDecoration(
-        color: _pill,
-        borderRadius: BorderRadius.circular(28),
-      ),
+      height: 44,
       child: Row(
         children: [
           AppTextLink(
@@ -331,7 +327,7 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  ChatMessage.formatDuration(_seconds),
+                  ChatMessage.formatDuration(_seconds, ref.watch(langProvider)),
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,

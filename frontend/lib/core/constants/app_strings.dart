@@ -35,7 +35,7 @@ abstract final class AppStrings {
       'Instantly reach nearby hospitals, police, or fire stations without memorizing numbers.',
       'ទាក់ទងទៅមន្ទីរពេទ្យ ប៉ូលិស ឬពន្លត់អគ្គិភ័យដែលនៅជិតបំផុតភ្លាមៗ ដោយមិនបាច់ចាំលេខទូរសព្ទ។',
     ),
-    'feat_gps': _k('Auto-GPS Location', 'កំណត់ទីតាំង GPS ស្វ័យប្រវត្តិ'),
+    'feat_gps': _k('Auto-GPS Location', 'កំណត់ទីតាំងដោយស្វ័យប្រវត្តិ'),
     'feat_gps_sub': _k(
       'Detects your exact street and Khan automatically so you can share it clearly during panic.',
       'បង្ហាញឈ្មោះផ្លូវ និងខណ្ឌរបស់អ្នកដោយស្វ័យប្រវត្តិ ដើម្បីងាយស្រួលប្រាប់ទៅអ្នកជួយសង្គ្រោះ។',
@@ -50,13 +50,13 @@ abstract final class AppStrings {
     'enter_phone': _k('Enter your phone number', 'បញ្ចូលលេខទូរស័ព្ទរបស់អ្នក'),
     'phone_reason': _k(
       'Used only for emergency callback or SMS.',
-      'ប្រើសម្រាប់តែការហៅត្រឡប់ ឬ SMS ក្នុងគ្រាអាសន្នប៉ុណ្ណោះ។',
+      'ប្រើសម្រាប់តែការហៅត្រឡប់ ឬសារខ្លី ក្នុងគ្រាអាសន្នប៉ុណ្ណោះ។',
     ),
     'phone_hint': _k('12 345 678', '១២ ៣៤៥ ៦៧៨'),
     'skip': _k('Skip for now', 'រំលងសិន'),
     'gps_dialog_title': _k(
       'Allow "Songkrous" to use your location?',
-      'អនុញ្ញាតឱ្យ "Songkrous" ប្រើទីតាំងរបស់អ្នកដែរឬទេ?',
+      'អនុញ្ញាតឱ្យ "សង្គ្រោះ" ប្រើទីតាំងរបស់អ្នកដែរឬទេ?',
     ),
     'gps_dialog_body': _k(
       'Your location helps find the nearest help and share it with responders.',
@@ -67,14 +67,14 @@ abstract final class AppStrings {
     'dont_allow': _k("Don't Allow", 'មិនអនុញ្ញាត'),
 
     // ── Navigation ───────────────────────────────────────────────────
-    'nav_home': _k('SOS Home', 'SOS ទំព័រដើម'),
+    'nav_home': _k('SOS Home', 'ទំព័រដើម'),
     'nav_map': _k('Nearby Map', 'ផែនទីជិតខ្លួន'),
     'nav_safety': _k('Safety Tips', 'គន្លឹះសុវត្ថិភាព'),
     'nav_hotlines': _k('Hotlines', 'ខ្សែទូរស័ព្ទ'),
 
     // ── Home ─────────────────────────────────────────────────────────
-    'gps_active': _k('GPS Active', 'GPS ដំណើរការ'),
-    'gps_off': _k('GPS Off', 'GPS បិទ'),
+    'gps_active': _k('GPS Active', 'ទីតាំងដំណើរការ'),
+    'gps_off': _k('GPS Off', 'ទីតាំងបិទ'),
     'your_location': _k('YOUR LOCATION', 'ទីតាំងរបស់អ្នក'),
     'copy_location': _k('Copy Location', 'ចម្លងទីតាំង'),
     'view_map': _k('View Map', 'មើលផែនទី'),
@@ -84,7 +84,7 @@ abstract final class AppStrings {
     'hospital': _k('Hospital', 'មន្ទីរពេទ្យ'),
     'police': _k('Police', 'ប៉ូលិស'),
     'fire': _k('Fire', 'ពន្លត់អគ្គិភ័យ'),
-    'sos_shortcut': _k('SOS', 'SOS'),
+    'sos_shortcut': _k('SOS', 'អាសន្ន'),
     'choose_khan': _k('Choose your Khan', 'ជ្រើសរើសខណ្ឌរបស់អ្នក'),
     'khan_word': _k('Khan', 'ខណ្ឌ'),
 
@@ -96,9 +96,9 @@ abstract final class AppStrings {
     'address_copied': _k('Address copied', 'បានចម្លងអាសយដ្ឋាន'),
     'sos_sms_body': _k(
       'SOS! I need help. My location:',
-      'SOS! ខ្ញុំត្រូវការជំនួយ។ ទីតាំងរបស់ខ្ញុំ៖',
+      'អាសន្ន! ខ្ញុំត្រូវការជំនួយ។ ទីតាំងរបស់ខ្ញុំ៖',
     ),
-    'tap_sos': _k('Tap SOS to call', 'ចុច SOS ដើម្បីហៅ'),
+    'tap_sos': _k('Tap SOS to call', 'ចុចប៊ូតុងអាសន្នដើម្បីហៅ'),
 
     // ── Outgoing call ────────────────────────────────────────────────
     'calling': _k('calling...', 'កំពុងហៅ...'),
@@ -106,7 +106,7 @@ abstract final class AppStrings {
     'keypad': _k('keypad', 'ក្តារលេខ'),
     'speaker': _k('speaker', 'ឧបករណ៍ពង្រីកសំឡេង'),
     'add_call': _k('add call', 'បន្ថែមការហៅ'),
-    'facetime': _k('FaceTime', 'FaceTime'),
+    'facetime': _k('FaceTime', 'ហៅវីដេអូ'),
     'contacts': _k('contacts', 'បញ្ជីទំនាក់ទំនង'),
     'read_location': _k('Read My Location', 'អានទីតាំងរបស់ខ្ញុំ'),
 
@@ -132,13 +132,21 @@ abstract final class AppStrings {
     'tag_police': _k('POLICE', 'ប៉ូលិស'),
     'tag_fire': _k('FIRE', 'អគ្គិភ័យ'),
     'recenter': _k('Recenter on my location', 'ត្រឡប់ទៅទីតាំងរបស់ខ្ញុំ'),
+    'unit_km': _k('km', 'គ.ម'),
+    'unit_min': _k('min', 'នាទី'),
+    'unit_m': _k('m', 'ម៉ែត្រ'),
     'swipe_up': _k('Swipe up', 'អូសឡើងលើ'),
+    'cat_medical': _k('Medical', 'ពេទ្យសង្គ្រោះបន្ទាន់'),
+    'cat_police': _k('Police', 'ប៉ូលិសសង្គ្រោះ'),
+    'cat_fire': _k('Fire & Rescue', 'អគ្គិភ័យ'),
+    'pill_direct': _k('DIRECT {phone}', 'ផ្ទាល់ {phone}'),
+    'pill_hotline': _k('HOTLINE {phone}', 'ខ្សែបន្ទាន់ {phone}'),
 
     // ── Emergency chat ───────────────────────────────────────────────
     'chat_connected': _k('Connected • {phone}', 'បានភ្ជាប់ • {phone}'),
     'chat_hint': _k('Message {phone}...', 'ផ្ញើសារទៅ {phone}...'),
     'chat_caption_hint': _k('Add a caption...', 'បន្ថែមចំណងជើង...'),
-    'chip_gps': _k('📍 Send GPS', '📍 ផ្ញើ GPS'),
+    'chip_gps': _k('📍 Send GPS', '📍 ផ្ញើទីតាំង'),
     'chip_ambulance': _k('🚑 Need Ambulance', '🚑 ត្រូវការរថយន្តសង្គ្រោះ'),
     'chip_bleeding': _k('🩸 Severe Bleeding', '🩸 ឈាមហូរខ្លាំង'),
     'chip_police': _k('🚓 Need Police', '🚓 ត្រូវការប៉ូលិស'),
@@ -154,6 +162,16 @@ abstract final class AppStrings {
       'I need the police at my location.',
       'ខ្ញុំត្រូវការប៉ូលិសនៅទីតាំងរបស់ខ្ញុំ។',
     ),
+    'st_sending': _k('Sending', 'កំពុងផ្ញើ'),
+    'st_sent': _k('Sent', 'បានផ្ញើ'),
+    'st_delivered': _k('Delivered', 'បានដល់'),
+    'st_read': _k('Read', 'បានអាន'),
+    'photo': _k('Photo', 'រូបថត'),
+    'close_photo': _k('Close photo', 'បិទរូបថត'),
+    'play_voice': _k('Play voice message', 'ចាក់សារសំឡេង'),
+    'end_call': _k('End call', 'បញ្ចប់ការហៅ'),
+    'toggle_list': _k('Toggle list', 'បើក/បិទបញ្ជី'),
+    'switch_language': _k('Switch language', 'ប្តូរភាសា'),
     'live_location': _k('Live Location', 'ទីតាំងបន្តផ្ទាល់'),
     'send_my_location': _k('Send my location', 'ផ្ញើទីតាំងរបស់ខ្ញុំ'),
     'call_dispatch': _k('Call dispatch', 'ហៅមជ្ឈមណ្ឌលបញ្ជា'),
@@ -178,7 +196,6 @@ abstract final class AppStrings {
     'remove_photo': _k('Remove photo', 'លុបរូបថត'),
     'record_voice': _k('Record voice message', 'ថតសារសំឡេង'),
     'send_voice': _k('Send voice message', 'ផ្ញើសារសំឡេង'),
-    'play_voice': _k('Play voice message', 'ចាក់សារសំឡេង'),
     'pause_voice': _k('Pause voice message', 'ផ្អាកសារសំឡេង'),
     'photo_from_library': _k('Photo library', 'បណ្ណាល័យរូបថត'),
     'typing': _k('Dispatch is typing', 'មជ្ឈមណ្ឌលកំពុងវាយ'),
@@ -301,6 +318,15 @@ abstract final class AppStrings {
     'search_khan': _k('Search Khan...', 'ស្វែងរកខណ្ឌ...'),
     'khan_police': _k('Emergency police', 'នគរបាលសង្គ្រោះបន្ទាន់'),
   };
+
+  /// Khmer numerals for `0-9` in Khmer mode (`012` → `០១២`); unchanged in
+  /// English. Apply to every number *shown* (phones, distances, times) — the
+  /// underlying data stays Latin so dialing/parsing keep working.
+  static String digits(String s, AppLang lang) {
+    if (lang != AppLang.km) return s;
+    const kh = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+    return s.replaceAllMapped(RegExp(r'[0-9]'), (m) => kh[int.parse(m[0]!)]);
+  }
 
   static String of(String key, AppLang lang) =>
       _t[key]?[lang] ?? _t[key]?[AppLang.en] ?? key;

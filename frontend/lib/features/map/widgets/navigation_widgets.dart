@@ -7,6 +7,7 @@ import '../../../core/constants/facilities.dart';
 import '../../../core/constants/phnom_penh_data.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_interactive.dart';
+import '../../../shared/widgets/liquid_glass.dart';
 
 /// Floating pill above the category bar: destination, `4 min • 1.2 km` and a
 /// primary action (`Start Route`, or `Call Now` once navigating). Tapping the
@@ -31,19 +32,11 @@ class NavInfoPill extends ConsumerWidget {
     final lang = ref.watch(langProvider);
     final text = Theme.of(context).textTheme;
 
-    return Container(
+    // Floating route card: frosted glass refracting the map underneath.
+    return LiquidGlassContainer(
+      radius: 32,
+      sigma: 20,
       padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.16),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
       child: Row(
         children: [
           Expanded(
@@ -74,8 +67,8 @@ class NavInfoPill extends ConsumerWidget {
                       AnimatedSwitcher(
                         duration: AppDurations.fast,
                         child: Text(
-                          target.pillSummary,
-                          key: ValueKey(target.pillSummary),
+                          target.pillSummary(lang),
+                          key: ValueKey(target.pillSummary(lang)),
                           style: text.bodyMedium?.copyWith(
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.w600,
@@ -100,8 +93,8 @@ class NavInfoPill extends ConsumerWidget {
             label: ref.tr(navigating ? 'call_now' : 'start_route'),
             // Red for hospital/fire, deep blue for police.
             colors: f.type == FacilityType.police
-                ? AppButtonColors.primary
-                : AppButtonColors.danger,
+                ? AppButtonColors.glassBlue
+                : AppButtonColors.glassRed,
             haptic: navigating ? AppHaptic.medium : AppHaptic.light,
             onPressed: onPrimary,
           ),
@@ -128,19 +121,11 @@ class NavBanner extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Semantics(
       liveRegion: true,
-      child: Container(
+      child: LiquidGlassContainer(
+        radius: 22,
+        tint: LiquidTint.blue,
+        useBlur: false,
         padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
-        decoration: BoxDecoration(
-          color: AppColors.blueDeep,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
         child: Row(
           children: [
             Container(
@@ -191,7 +176,7 @@ class NavBanner extends ConsumerWidget {
               fontSize: 13,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               label: ref.tr('exit'),
-              colors: AppButtonColors.onDarkSolid,
+              colors: AppButtonColors.glassOnBlueSolid,
               haptic: AppHaptic.medium,
               onPressed: onExit,
             ),

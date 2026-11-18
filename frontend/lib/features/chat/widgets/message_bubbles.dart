@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/app_strings.dart';
+import '../../../core/constants/app_state.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/chat_message.dart';
 import 'location_bubble.dart';
@@ -45,12 +48,14 @@ BorderRadius bubbleRadius({
         );
 }
 
-String formatTime(DateTime t) =>
-    '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+String formatTime(DateTime t, [AppLang lang = AppLang.en]) => AppStrings.digits(
+  '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}',
+  lang,
+);
 
 /// Tiny `12:41 ✓✓` footer. [onDark] flips colours for the blue bubble / photo
 /// overlay.
-class BubbleMeta extends StatelessWidget {
+class BubbleMeta extends ConsumerWidget {
   const BubbleMeta({super.key, required this.message, this.onDark});
 
   final ChatMessage message;
@@ -59,14 +64,14 @@ class BubbleMeta extends StatelessWidget {
   final bool? onDark;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final dark = onDark ?? message.isMe;
     final color = dark ? Colors.white70 : ChatColors.meta;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          formatTime(message.timestamp),
+          formatTime(message.timestamp, ref.watch(langProvider)),
           style: TextStyle(fontSize: 10.5, color: color, height: 1.2),
         ),
         if (message.isMe) ...[
@@ -123,7 +128,7 @@ class ChatBubble extends StatelessWidget {
   }
 }
 
-class _TextBubble extends StatelessWidget {
+class _TextBubble extends ConsumerWidget {
   const _TextBubble({
     required this.message,
     required this.radius,
@@ -135,7 +140,7 @@ class _TextBubble extends StatelessWidget {
   final double maxWidth;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final me = message.isMe;
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
@@ -151,7 +156,7 @@ class _TextBubble extends StatelessWidget {
           children: [
             Flexible(
               child: Text(
-                message.text ?? '',
+                message.textFor(ref.watch(langProvider)) ?? '',
                 style: TextStyle(
                   fontSize: 15,
                   height: 1.45, // Khmer stacks need the room

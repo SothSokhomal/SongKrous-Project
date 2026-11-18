@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/app_state.dart';
 import '../../../core/animations/app_animations.dart';
 import '../../../shared/widgets/app_interactive.dart';
 import '../models/chat_message.dart';
@@ -9,7 +11,7 @@ import 'message_bubbles.dart';
 /// Edge-to-edge rounded photo (max 230 px) with an optional caption. Without a
 /// caption the timestamp + ticks sit in a dark pill over the image corner.
 /// Tapping opens the [PhotoLightbox] with a shared-element `Hero`.
-class PhotoBubble extends StatelessWidget {
+class PhotoBubble extends ConsumerWidget {
   const PhotoBubble({super.key, required this.message, required this.maxWidth});
 
   final ChatMessage message;
@@ -18,9 +20,9 @@ class PhotoBubble extends StatelessWidget {
   static String heroTag(ChatMessage m) => 'chat-photo-${m.id}';
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final w = maxWidth < 230 ? maxWidth : 230.0;
-    final caption = message.text;
+    final caption = message.textFor(ref.watch(langProvider));
     final hasCaption = caption != null && caption.isNotEmpty;
     final me = message.isMe;
 
@@ -34,7 +36,7 @@ class PhotoBubble extends StatelessWidget {
 
     return Semantics(
       button: true,
-      label: 'Photo',
+      label: ref.tr('photo'),
       child: AppPressable(
         haptic: AppHaptic.selection,
         onTap: () => Navigator.of(context).push(
@@ -120,14 +122,14 @@ class PhotoBubble extends StatelessWidget {
 }
 
 /// Full-screen dark viewer: pinch-zoom, tap anywhere or ✕ to close.
-class PhotoLightbox extends StatelessWidget {
+class PhotoLightbox extends ConsumerWidget {
   const PhotoLightbox({super.key, required this.message});
 
   final ChatMessage message;
 
   @override
-  Widget build(BuildContext context) {
-    final caption = message.text;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final caption = message.textFor(ref.watch(langProvider));
     return Scaffold(
       backgroundColor: Colors.black.withValues(alpha: 0.94),
       body: Stack(
@@ -159,8 +161,8 @@ class PhotoLightbox extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: AppScaleButton(
-                  tooltip: 'Close',
-                  semanticLabel: 'Close photo',
+                  tooltip: ref.tr('close'),
+                  semanticLabel: ref.tr('close_photo'),
                   haptic: AppHaptic.selection,
                   onTap: () => Navigator.of(context).maybePop(),
                   child: Container(

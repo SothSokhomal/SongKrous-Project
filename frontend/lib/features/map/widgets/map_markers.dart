@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/animations/app_animations.dart';
 import '../../../core/animations/pulsing_beacon.dart';
+import '../../../core/constants/app_state.dart';
 import '../../../core/constants/facilities.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_interactive.dart';
@@ -51,7 +53,7 @@ class _UserDot extends StatelessWidget {
 /// Hover or selection scales it to 1.16 / 1.2 with a deeper shadow; a tap
 /// gives a light haptic. Hit-testing is tight to the pin and its label — the
 /// rest of the marker box passes drags straight through to the map.
-class FacilityPin extends StatelessWidget {
+class FacilityPin extends ConsumerWidget {
   const FacilityPin({
     super.key,
     required this.facility,
@@ -66,14 +68,14 @@ class FacilityPin extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final color = facilityColor(facility.type);
     return Align(
       alignment: Alignment.topCenter,
       child: Semantics(
         button: true,
         selected: selected,
-        label: facility.nameEn,
+        label: facility.name(ref.watch(langProvider)),
         child: AppPressable(
           onTap: onTap,
           haptic: AppHaptic.light,

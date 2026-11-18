@@ -34,18 +34,26 @@ class Facility {
     required this.mockKm,
     required this.mockMinutes,
     this.address,
+    this.addressKm,
     this.altPhone,
+    this.shortNameEn,
+    this.shortNameKm,
   });
 
   final String id;
   final FacilityType type;
   final String nameEn;
   final String nameKm;
+
+  /// Compact names for tight UI (home cards); default to the full names.
+  final String? shortNameEn;
+  final String? shortNameKm;
   final String khanId;
   final LatLng location;
 
-  /// Street address (Latin), if known.
+  /// Street address, if known — English / Khmer versions.
   final String? address;
+  final String? addressKm;
 
   /// Primary dial number, e.g. `+855 23 426 948` or `117`.
   final String phone;
@@ -63,10 +71,17 @@ class Facility {
 
   String name(AppLang lang) => lang == AppLang.km ? nameKm : nameEn;
 
-  /// e.g. `34 Preah Monivong Blvd (93), ខណ្ឌដូនពេញ`
-  String displayAddress() => address != null
-      ? '$address, ខណ្ឌ${khan.km}'
-      : 'ខណ្ឌ${khan.km} • Khan ${khan.en}';
+  String shortName(AppLang lang) =>
+      lang == AppLang.km ? (shortNameKm ?? nameKm) : (shortNameEn ?? nameEn);
+
+  /// One language only: `34 Preah Monivong Blvd (93), Khan Doun Penh` or
+  /// `មហាវិថីព្រះមុនីវង្ស (៩៣) លេខ ៣៤, ខណ្ឌដូនពេញ`.
+  String displayAddress(AppLang lang) {
+    final km = lang == AppLang.km;
+    final street = km ? addressKm : address;
+    final khanName = km ? 'ខណ្ឌ${khan.km}' : 'Khan ${khan.en}';
+    return street != null ? '$street, $khanName' : khanName;
+  }
 }
 
 /// Strips spaces so a display number can be passed to `tel:`.

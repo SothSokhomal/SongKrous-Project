@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/animations/app_animations.dart';
 import '../../core/constants/app_state.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/constants/facilities.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/liquid_glass.dart';
 import '../map/widgets/map_markers.dart';
 import 'models/chat_message.dart';
 import 'services/telegram_dispatch_service.dart';
@@ -75,103 +77,138 @@ class _EmergencyChatScreenState extends ConsumerState<EmergencyChatScreen> {
     final maxBubble = MediaQuery.sizeOf(context).width * 0.76;
     final itemCount = messages.length + (chat.typing ? 1 : 0);
 
+    final headerHeight =
+        MediaQuery.paddingOf(context).top + ChatHeader.contentHeight;
+
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: true,
-      body: Column(
-        children: [
-          ChatHeader(
-            facility: facility,
-            onBack: () =>
-                context.canPop() ? context.pop() : context.go(AppRoutes.home),
-            onSendLocation: _chat.sendLocation,
-            onCall: () => context.push(
-              AppRoutes.calling(facility.nameEn, facility.phone),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              controller: _scroll,
-              reverse: true,
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-              itemCount: itemCount,
-              // Items shift by one whenever a message arrives or the typing
-              // indicator toggles. Resolving by key keeps each bubble's State
-              // (a playing voice note, entrance animations) instead of
-              // rebuilding it from scratch.
-              findChildIndexCallback: (key) {
-                if (key is! ValueKey<String>) return null;
-                if (key.value == _typingKey) return chat.typing ? 0 : null;
-                final i = messages.indexWhere((m) => m.id == key.value);
-                if (i < 0) return null;
-                return messages.length - 1 - i + (chat.typing ? 1 : 0);
-              },
-              itemBuilder: (context, index) {
-                // index 0 = bottom-most item.
-                if (chat.typing && index == 0) {
-                  return Padding(
-                    key: const ValueKey(_typingKey),
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Semantics(
-                      liveRegion: true,
-                      label: ref.tr('typing'),
-                      child: _IncomingRow(
-                        facility: facility,
-                        showAvatar: true,
-                        child: const TypingIndicator(),
-                      ),
-                    ),
-                  );
-                }
-                final i = messages.length - 1 - (index - (chat.typing ? 1 : 0));
-                final m = messages[i];
-                final first = i == 0 || !_sameGroup(messages[i - 1], m);
-                final last =
-                    i == messages.length - 1 || !_sameGroup(m, messages[i + 1]);
+      body: LiquidAmbientCanvas(
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scroll,
+                    reverse: true,
+                    // Messages scroll *under* the glass header (it blurs them).
+                    padding: EdgeInsets.fromLTRB(12, headerHeight + 8, 12, 8),
+                    itemCount: itemCount,
+                    // Items shift by one whenever a message arrives or the typing
+                    // indicator toggles. Resolving by key keeps each bubble's State
+                    // (a playing voice note, entrance animations) instead of
+                    // rebuilding it from scratch.
+                    findChildIndexCallback: (key) {
+                      if (key is! ValueKey<String>) return null;
+                      if (key.value == _typingKey) {
+                        return chat.typing ? 0 : null;
+                      }
+                      final i = messages.indexWhere((m) => m.id == key.value);
+                      if (i < 0) return null;
+                      return messages.length - 1 - i + (chat.typing ? 1 : 0);
+                    },
+                    itemBuilder: (context, index) {
+                      // index 0 = bottom-most item.
+                      if (chat.typing && index == 0) {
+                        return Padding(
+                          key: const ValueKey(_typingKey),
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Semantics(
+                            liveRegion: true,
+                            label: ref.tr('typing'),
+                            child: _IncomingRow(
+                              facility: facility,
+                              showAvatar: true,
+                              child: const TypingIndicator(),
+                            ),
+                          ),
+                        );
+                      }
+                      final i =
+                          messages.length - 1 - (index - (chat.typing ? 1 : 0));
+                      final m = messages[i];
+                      final first = i == 0 || !_sameGroup(messages[i - 1], m);
+                      final last =
+                          i == messages.length - 1 ||
+                          !_sameGroup(m, messages[i + 1]);
 
-                final bubble = ChatBubble(
-                  message: m,
-                  first: first,
-                  last: last,
-                  maxWidth: maxBubble,
-                );
-                final row = m.isMe
-                    ? Align(alignment: Alignment.centerRight, child: bubble)
-                    : _IncomingRow(
-                        facility: facility,
-                        showAvatar: last,
-                        child: Flexible(child: bubble),
+                      final bubble = ChatBubble(
+                        message: m,
+                        first: first,
+                        last: last,
+                        maxWidth: maxBubble,
                       );
+                      final row = m.isMe
+                          ? Align(
+                              alignment: Alignment.centerRight,
+                              child: bubble,
+                            )
+                          : _IncomingRow(
+                              facility: facility,
+                              showAvatar: last,
+                              child: Flexible(child: bubble),
+                            );
 
-                return _Appear(
-                  key: ValueKey(m.id),
-                  animate: !_initialIds.contains(m.id),
-                  child: Padding(
-                    padding: EdgeInsets.only(top: first ? 10 : 2),
-                    child: row,
+                      return _Appear(
+                        key: ValueKey(m.id),
+                        animate: !_initialIds.contains(m.id),
+                        child: Padding(
+                          padding: EdgeInsets.only(top: first ? 10 : 2),
+                          child: row,
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+                QuickChips(
+                  onGps: _chat.sendLocation,
+                  onAmbulance: () => _chat.sendText(
+                    AppStrings.of('msg_ambulance', AppLang.en),
+                    textKm: AppStrings.of('msg_ambulance', AppLang.km),
+                  ),
+                  onBleeding: () => _chat.sendText(
+                    AppStrings.of('msg_bleeding', AppLang.en),
+                    textKm: AppStrings.of('msg_bleeding', AppLang.km),
+                  ),
+                  onPolice: () => _chat.sendText(
+                    AppStrings.of('msg_police', AppLang.en),
+                    textKm: AppStrings.of('msg_police', AppLang.km),
+                  ),
+                ),
+                SafeArea(
+                  top: false,
+                  child: ChatComposer(
+                    phone: facility.phone,
+                    onSendText: _chat.sendText,
+                    onSendPhoto: (path, caption) =>
+                        _chat.sendPhoto(path, caption: caption),
+                    onSendVoice: (seconds, wave) =>
+                        _chat.sendVoice(durationSec: seconds, waveform: wave),
+                  ),
+                ),
+              ],
             ),
-          ),
-          QuickChips(
-            onGps: _chat.sendLocation,
-            onAmbulance: () => _chat.sendText(ref.tr('msg_ambulance')),
-            onBleeding: () => _chat.sendText(ref.tr('msg_bleeding')),
-            onPolice: () => _chat.sendText(ref.tr('msg_police')),
-          ),
-          SafeArea(
-            top: false,
-            child: ChatComposer(
-              phone: facility.phone,
-              onSendText: _chat.sendText,
-              onSendPhoto: (path, caption) =>
-                  _chat.sendPhoto(path, caption: caption),
-              onSendVoice: (seconds, wave) =>
-                  _chat.sendVoice(durationSec: seconds, waveform: wave),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: ChatHeader(
+                facility: facility,
+                onBack: () => context.canPop()
+                    ? context.pop()
+                    : context.go(AppRoutes.home),
+                onSendLocation: _chat.sendLocation,
+                onCall: () => context.push(
+                  AppRoutes.calling(
+                    facility.name(ref.read(langProvider)),
+                    facility.phone,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -4,38 +4,63 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../constants/app_strings.dart';
 import '../constants/phnom_penh_data.dart';
 import '../constants/khans.dart';
 
-/// Demo street address shown until reverse-geocoding is wired up.
+/// Demo street address shown until reverse-geocoding is wired up — one
+/// natural-language version per UI language (never mixed).
 /// TODO(geocoding): resolve the real street address from GPS coordinates.
-const String kDemoAddress = 'St. 598, ភូមិ គីឡូម៉ែត លេខ 6';
+const String kDemoAddressEn = 'St. 598, Kilometer 6 Village';
+const String kDemoAddressKm = 'ផ្លូវ ៥៩៨ ភូមិគីឡូម៉ែត្រ លេខ ៦';
 
 class UserLocation {
   const UserLocation({
     required this.latLng,
     required this.khan,
     this.address,
+    this.addressKm,
     this.gpsActive = false,
   });
 
   final LatLng latLng;
   final Khan khan;
 
-  /// Street line; null when the user picked a Khan manually (no GPS).
+  /// Street line in English / Khmer; null when the user picked a Khan
+  /// manually (no GPS).
   final String? address;
+  final String? addressKm;
   final bool gpsActive;
 
-  /// `ខណ្ឌឫស្សីកែវ • Khan Russey Keo`
-  String get khanLine => 'ខណ្ឌ${khan.km} • Khan ${khan.en}';
+  bool _km(AppLang l) => l == AppLang.km;
 
-  String get headline => address ?? 'ខណ្ឌ${khan.km}';
+  /// Large address line, in one language only.
+  String headlineFor(AppLang l) =>
+      _km(l) ? (addressKm ?? 'ខណ្ឌ${khan.km}') : (address ?? 'Khan ${khan.en}');
+
+  /// `Khan Russey Keo` / `ខណ្ឌឫស្សីកែវ`
+  String khanLineFor(AppLang l) =>
+      _km(l) ? 'ខណ្ឌ${khan.km}' : 'Khan ${khan.en}';
+
+  /// `11.5813° N, 104.9158° E` / `១១.៥៨១៣° ជើង, ១០៤.៩១៥៨° កើត`
+  String coordinatesFor(AppLang l) {
+    final lat = latLng.latitude, lng = latLng.longitude;
+    final latS = lat.abs().toStringAsFixed(4);
+    final lngS = lng.abs().toStringAsFixed(4);
+    final n = _km(l) ? 'ជើង' : 'N', s = _km(l) ? 'ត្បូង' : 'S';
+    final e = _km(l) ? 'កើត' : 'E', w = _km(l) ? 'លិច' : 'W';
+    return AppStrings.digits(
+      '$latS° ${lat >= 0 ? n : s}, $lngS° ${lng >= 0 ? e : w}',
+      l,
+    );
+  }
 
   String get mapsLink =>
       'https://maps.google.com/?q=${latLng.latitude.toStringAsFixed(6)},${latLng.longitude.toStringAsFixed(6)}';
 
-  /// Text for the clipboard / SMS: address + GPS coordinates.
-  String get shareText => '$headline, $khanLine\n$mapsLink';
+  /// Text for the clipboard / share sheet: address + map link.
+  String shareTextFor(AppLang l) =>
+      '${headlineFor(l)}, ${khanLineFor(l)}\n$mapsLink';
 
   UserLocation copyWith({
     LatLng? latLng,
@@ -47,6 +72,7 @@ class UserLocation {
     latLng: latLng ?? this.latLng,
     khan: khan ?? this.khan,
     address: clearAddress ? null : (address ?? this.address),
+    addressKm: clearAddress ? null : addressKm,
     gpsActive: gpsActive ?? this.gpsActive,
   );
 }
@@ -56,7 +82,8 @@ class LocationNotifier extends Notifier<UserLocation> {
   UserLocation build() => const UserLocation(
     latLng: PhnomPenh.center,
     khan: PhnomPenhKhans.russeyKeo,
-    address: kDemoAddress,
+    address: kDemoAddressEn,
+    addressKm: kDemoAddressKm,
   );
 
   /// Asks for location permission. Returns true when granted.

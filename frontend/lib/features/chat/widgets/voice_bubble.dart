@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/app_state.dart';
 import '../../../core/animations/app_animations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_interactive.dart';
@@ -12,7 +14,7 @@ import 'message_bubbles.dart';
 /// Playback is simulated — an [AnimationController] sweeps the progress over
 /// the note's duration. // TODO: back this with real audio (just_audio) once
 /// the voice file is available from the Telegram backend.
-class VoiceBubble extends StatefulWidget {
+class VoiceBubble extends ConsumerStatefulWidget {
   const VoiceBubble({
     super.key,
     required this.message,
@@ -25,10 +27,10 @@ class VoiceBubble extends StatefulWidget {
   final double maxWidth;
 
   @override
-  State<VoiceBubble> createState() => _VoiceBubbleState();
+  ConsumerState<VoiceBubble> createState() => _VoiceBubbleState();
 }
 
-class _VoiceBubbleState extends State<VoiceBubble>
+class _VoiceBubbleState extends ConsumerState<VoiceBubble>
     with SingleTickerProviderStateMixin {
   late final AnimationController _progress = AnimationController(
     vsync: this,
@@ -79,7 +81,7 @@ class _VoiceBubbleState extends State<VoiceBubble>
         child: Row(
           children: [
             AppScaleButton(
-              semanticLabel: 'Play voice message',
+              semanticLabel: ref.tr('play_voice'),
               haptic: AppHaptic.light,
               hoverScale: 1.06,
               pressScale: 0.92,
@@ -130,7 +132,7 @@ class _VoiceBubbleState extends State<VoiceBubble>
                         ? (total * (1 - _progress.value)).ceil()
                         : total;
                     return Text(
-                      ChatMessage.formatDuration(left),
+                      ChatMessage.formatDuration(left, ref.watch(langProvider)),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

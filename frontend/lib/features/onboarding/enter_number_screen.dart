@@ -87,8 +87,8 @@ class _EnterNumberScreenState extends ConsumerState<EnterNumberScreen> {
                   color: AppColors.blueSoft,
                   borderRadius: BorderRadius.circular(28),
                 ),
-                child: const Text(
-                  '🇰🇭 +855',
+                child: Text(
+                  '🇰🇭 ${ref.num('+855')}',
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     color: AppColors.blueDeep,

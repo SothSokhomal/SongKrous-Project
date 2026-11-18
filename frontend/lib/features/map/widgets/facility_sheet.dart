@@ -10,6 +10,7 @@ import '../../../core/constants/phnom_penh_data.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/floating_bottom_nav.dart';
 import '../../../shared/widgets/app_interactive.dart';
+import '../../../shared/widgets/liquid_glass.dart';
 import 'map_markers.dart';
 
 /// Contents of the Grab-style bottom sheet (State B).
@@ -65,19 +66,12 @@ class NearbySheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final title = _title(ref);
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.16),
-            blurRadius: 24,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
+    // One frosted-glass surface (σ 24, ~0.88 white) with a specular rim: the
+    // map shows softly through the sheet while the rows stay ultra-clean.
+    return LiquidGlassContainer(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      tint: LiquidTint.frostStrong,
+      sigma: 24,
       child: ValueListenableBuilder<bool>(
         valueListenable: collapsed,
         builder: (context, isCollapsed, _) => Stack(
@@ -127,7 +121,7 @@ class NearbySheet extends ConsumerWidget {
                       secondChild: _Inert(
                         inert: !isCollapsed,
                         child: _PeekHeader(
-                          title: '$title (${results.length})',
+                          title: '$title (${ref.num('${results.length}')})',
                           onClose: onClose,
                         ),
                       ),
@@ -199,16 +193,16 @@ class _Inert extends StatelessWidget {
 }
 
 /// 36×4 grabber. Tapping toggles collapsed ⇄ open; it darkens on hover.
-class _Handle extends StatelessWidget {
+class _Handle extends ConsumerWidget {
   const _Handle({required this.onTap});
 
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Semantics(
       button: true,
-      label: 'Toggle list',
+      label: ref.tr('toggle_list'),
       child: AppPressable(
         onTap: onTap,
         haptic: AppHaptic.selection,
@@ -555,7 +549,7 @@ class _FacilityRow extends ConsumerWidget {
     final tag = switch (f.type) {
       FacilityType.hospital => ref.tr('tag_er'),
       FacilityType.police => ref.tr('tag_police'),
-      FacilityType.fire => '${ref.tr('tag_fire')} · ${f.phone}',
+      FacilityType.fire => '${ref.tr('tag_fire')} · ${ref.num(f.phone)}',
     };
 
     return AppInteractiveCard(
@@ -623,7 +617,7 @@ class _FacilityRow extends ConsumerWidget {
                       ),
                     ),
                     Text(
-                      ranked.summary,
+                      ranked.summary(lang),
                       style: text.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         fontSize: 13,

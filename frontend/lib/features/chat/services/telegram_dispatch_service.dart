@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../../core/constants/app_state.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/facilities.dart';
 import '../../../core/state/location_state.dart';
@@ -22,12 +21,14 @@ class DispatchContext {
   const DispatchContext({
     required this.facility,
     required this.userAddress,
-    required this.khmer,
+    required this.userAddressKm,
   });
 
   final Facility facility;
+
+  /// The user's street address, in each UI language.
   final String userAddress;
-  final bool khmer;
+  final String userAddressKm;
 }
 
 sealed class DispatchEvent {
@@ -92,21 +93,21 @@ class SimulatedTelegramTransport implements DispatchTransport {
         type: MessageType.text,
         timestamp: DateTime.now(),
         status: MessageStatus.read,
-        text: _confirmation(message, context),
+        // Both versions: the chat re-renders in whichever language is active.
+        text: _confirmation(message, context, AppLang.en),
+        textKm: _confirmation(message, context, AppLang.km),
       ),
     );
   }
 
-  static String _confirmation(ChatMessage m, DispatchContext c) {
-    final phone = c.facility.phone;
-    final addr = c.userAddress;
-    final km = c.khmer;
+  static String _confirmation(ChatMessage m, DispatchContext c, AppLang l) {
+    final km = l == AppLang.km;
+    final phone = AppStrings.digits(c.facility.phone, l);
+    final addr = km ? c.userAddressKm : c.userAddress;
+    final dur = ChatMessage.formatDuration(m.voiceDurationSec ?? 0, l);
     final what = switch (m.type) {
       MessageType.text => km ? 'សាររបស់អ្នក' : 'your message',
-      MessageType.voice =>
-        km
-            ? 'សារសំឡេង (${ChatMessage.formatDuration(m.voiceDurationSec ?? 0)})'
-            : 'your voice note (${ChatMessage.formatDuration(m.voiceDurationSec ?? 0)})',
+      MessageType.voice => km ? 'សារសំឡេង ($dur)' : 'your voice note ($dur)',
       MessageType.photo => km ? 'រូបថតរបស់អ្នក' : 'your photo',
       MessageType.location => km ? 'ទីតាំងរបស់អ្នក' : 'your live location',
     };
@@ -146,7 +147,6 @@ class ChatNotifier extends Notifier<ChatState> {
   @override
   ChatState build() {
     final loc = ref.read(locationProvider);
-    final khmer = ref.read(langProvider) == AppLang.km;
     final now = DateTime.now();
     return ChatState(
       messages: [
@@ -158,7 +158,8 @@ class ChatNotifier extends Notifier<ChatState> {
           timestamp: now,
           status: MessageStatus.delivered,
           latLng: loc.latLng,
-          addressLabel: '${loc.headline} • ${loc.khanLine.split(' • ').first}',
+          addressLabel: _addressLabel(loc, AppLang.en),
+          addressLabelKm: _addressLabel(loc, AppLang.km),
         ),
         // …and a one-line welcome from the connected facility.
         ChatMessage(
@@ -167,8 +168,9 @@ class ChatNotifier extends Notifier<ChatState> {
           type: MessageType.text,
           timestamp: now,
           status: MessageStatus.read,
-          text:
-              '${facility.name(khmer ? AppLang.km : AppLang.en)} · ${facility.phone}',
+          text: '${facility.nameEn} · ${facility.phone}',
+          textKm:
+              '${facility.nameKm} · ${AppStrings.digits(facility.phone, AppLang.km)}',
         ),
       ],
     );
@@ -178,16 +180,21 @@ class ChatNotifier extends Notifier<ChatState> {
     final loc = ref.read(locationProvider);
     return DispatchContext(
       facility: facility,
-      userAddress: loc.headline,
-      khmer: ref.read(langProvider) == AppLang.km,
+      userAddress: loc.headlineFor(AppLang.en),
+      userAddressKm: loc.headlineFor(AppLang.km),
     );
   }
+
+  static String _addressLabel(UserLocation loc, AppLang l) =>
+      '${loc.headlineFor(l)} • ${loc.khanLineFor(l).split(' • ').first}';
 
   String _nextId() => 'm${_seq++}';
 
   // ── Sending ───────────────────────────────────────────────────────────
 
-  void sendText(String text) {
+  /// [textKm] is the Khmer twin of a canned message (quick chips); typed
+  /// messages have none and display exactly as typed.
+  void sendText(String text, {String? textKm}) {
     final t = text.trim();
     if (t.isEmpty) return;
     _send(
@@ -197,6 +204,7 @@ class ChatNotifier extends Notifier<ChatState> {
         type: MessageType.text,
         timestamp: DateTime.now(),
         text: t,
+        textKm: textKm,
       ),
     );
   }
@@ -238,7 +246,8 @@ class ChatNotifier extends Notifier<ChatState> {
         type: MessageType.location,
         timestamp: DateTime.now(),
         latLng: LatLng(loc.latLng.latitude, loc.latLng.longitude),
-        addressLabel: '${loc.headline} • ${loc.khanLine.split(' • ').first}',
+        addressLabel: _addressLabel(loc, AppLang.en),
+        addressLabelKm: _addressLabel(loc, AppLang.km),
       ),
     );
   }

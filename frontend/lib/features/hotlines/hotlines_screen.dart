@@ -9,6 +9,7 @@ import '../../core/constants/khans.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/app_interactive.dart';
+import '../../shared/widgets/liquid_glass.dart';
 import '../../shared/widgets/main_shell.dart';
 
 /// Hotlines tab — searchable Khan directory.
@@ -37,51 +38,55 @@ class _HotlinesScreenState extends ConsumerState<HotlinesScreen> {
         )
         .toList();
 
-    return SafeArea(
-      bottom: false,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              12,
-              20,
-              MainShell.navClearance(context),
-            ),
-            children: [
-              Text(ref.tr('hotlines_title'), style: text.headlineMedium),
-              const SizedBox(height: 16),
-              Text(ref.tr('khan_directory'), style: text.titleLarge),
-              const SizedBox(height: 12),
-              AppFocusInput(
-                radius: 28,
-                builder: (context, node) => TextField(
-                  focusNode: node,
-                  onChanged: (v) => setState(() => _query = v),
-                  decoration: AppFocusInput.bareDecoration(
-                    hintText: ref.tr('search_khan'),
-                    prefixIcon: const Icon(Icons.search_rounded),
-                  ),
-                ),
+    return LiquidAmbientCanvas(
+      child: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: ListView(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                12,
+                20,
+                MainShell.navClearance(context),
               ),
-
-              const SizedBox(height: 12),
-              for (final k in khans) ...[
-                _KhanTile(
-                  title: lang == AppLang.km ? 'ខណ្ឌ${k.km}' : 'Khan ${k.en}',
-                  subtitle:
-                      '${ref.tr('khan_police')} · ${EmergencyNumbers.police}',
-                  onCall: () => _dial(
-                    lang == AppLang.km ? 'ខណ្ឌ${k.km}' : 'Khan ${k.en}',
-                    // TODO(data): per-Khan station numbers; until then dial
-                    // the national police line.
-                    EmergencyNumbers.police,
+              children: [
+                Text(ref.tr('hotlines_title'), style: text.headlineMedium),
+                const SizedBox(height: 16),
+                Text(ref.tr('khan_directory'), style: text.titleLarge),
+                const SizedBox(height: 12),
+                AppFocusInput(
+                  radius: 28,
+                  glass: true,
+                  glassBlur: false,
+                  builder: (context, node) => TextField(
+                    focusNode: node,
+                    onChanged: (v) => setState(() => _query = v),
+                    decoration: AppFocusInput.bareDecoration(
+                      hintText: ref.tr('search_khan'),
+                      prefixIcon: const Icon(Icons.search_rounded),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
+
+                const SizedBox(height: 12),
+                for (final k in khans) ...[
+                  _KhanTile(
+                    title: lang == AppLang.km ? 'ខណ្ឌ${k.km}' : 'Khan ${k.en}',
+                    subtitle:
+                        '${ref.tr('khan_police')} · ${ref.num(EmergencyNumbers.police)}',
+                    onCall: () => _dial(
+                      lang == AppLang.km ? 'ខណ្ឌ${k.km}' : 'Khan ${k.en}',
+                      // TODO(data): per-Khan station numbers; until then dial
+                      // the national police line.
+                      EmergencyNumbers.police,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -89,7 +94,7 @@ class _HotlinesScreenState extends ConsumerState<HotlinesScreen> {
   }
 }
 
-class _KhanTile extends StatelessWidget {
+class _KhanTile extends ConsumerWidget {
   const _KhanTile({
     required this.title,
     required this.subtitle,
@@ -101,20 +106,18 @@ class _KhanTile extends StatelessWidget {
   final VoidCallback onCall;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
     return AppInteractiveCard(
       semanticLabel: title,
       onTap: onCall,
-      radius: 16,
+      radius: 20,
+      glass: LiquidTint.frost,
       haptic: AppHaptic.selection,
       padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
       builder: (context, hovered, pressed) => Row(
         children: [
-          const CircleAvatar(
-            backgroundColor: AppColors.blueSoft,
-            child: Icon(Icons.location_city_rounded, color: AppColors.blue),
-          ),
+          const LayeredIconBadge(icon: Icons.location_city_rounded, size: 42),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -128,7 +131,7 @@ class _KhanTile extends StatelessWidget {
           // The call button pops independently of the row.
           AppScaleButton(
             tooltip: title,
-            semanticLabel: 'Call $title',
+            semanticLabel: '${ref.tr('call')} $title',
             onTap: onCall,
             haptic: AppHaptic.medium,
             child: Container(

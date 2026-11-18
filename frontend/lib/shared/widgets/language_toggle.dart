@@ -6,6 +6,7 @@ import '../../core/constants/app_state.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import 'app_interactive.dart';
+import 'liquid_glass.dart';
 
 /// White pill `ភាសាខ្មែរ | English` with a sliding active background (220 ms),
 /// a soft hover tint on the inactive language and a selection haptic.
@@ -20,19 +21,10 @@ class LanguagePill extends ConsumerWidget {
     final lang = ref.watch(langProvider);
     final km = lang == AppLang.km;
 
-    return Container(
+    return LiquidGlassContainer(
+      radius: 24,
+      tint: LiquidTint.frostStrong,
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: SizedBox(
         width: _segment * 2,
         height: _height,
@@ -138,7 +130,7 @@ class LanguageCompactToggle extends ConsumerWidget {
     );
     return Semantics(
       button: true,
-      label: 'Switch language',
+      label: ref.tr('switch_language'),
       child: AppPressable(
         onTap: () => ref.read(langProvider.notifier).toggle(),
         haptic: AppHaptic.selection,
@@ -146,16 +138,12 @@ class LanguageCompactToggle extends ConsumerWidget {
           duration: const Duration(milliseconds: 120),
           curve: AppCurves.out,
           scale: pressed ? 0.95 : 1.0,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 130),
+          child: LiquidGlassContainer(
+            radius: 16,
+            useBlur: false,
+            hovered: hovered,
+            pressed: pressed,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(
-              color: hovered ? const Color(0xFFF1F5FF) : AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: hovered ? const Color(0xFF93C5FD) : AppColors.border,
-              ),
-            ),
             child: Text.rich(
               TextSpan(
                 children: [

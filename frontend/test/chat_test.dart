@@ -112,8 +112,8 @@ void main() {
       tester,
     ) async {
       await boot(tester, lang: AppLang.km);
-      expect(find.text('📍 ផ្ញើ GPS'), findsOneWidget);
-      expect(find.text('ផ្ញើសារទៅ +855 23 426 948...'), findsOneWidget);
+      expect(find.text('📍 ផ្ញើទីតាំង'), findsOneWidget);
+      expect(find.text('ផ្ញើសារទៅ +៨៥៥ ២៣ ៤២៦ ៩៤៨...'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });
@@ -164,7 +164,7 @@ void main() {
       expect(
         find.text(
           'Received your message at Dispatch (+855 23 426 948). '
-          'Please stay at St. 598, ភូមិ គីឡូម៉ែត លេខ 6, help is on the way.',
+          'Please stay at St. 598, Kilometer 6 Village, help is on the way.',
         ),
         findsOneWidget,
       );
@@ -490,7 +490,11 @@ void main() {
     );
     await for (final e in const SimulatedTelegramTransport().deliver(
       m,
-      DispatchContext(facility: _f, userAddress: 'St. 598', khmer: false),
+      DispatchContext(
+        facility: _f,
+        userAddress: 'St. 598',
+        userAddressKm: 'ផ្លូវ ៥៩៨',
+      ),
     )) {
       events.add(switch (e) {
         StatusChanged(:final status) => status.name,
@@ -507,6 +511,44 @@ void main() {
     ]);
     expect(events.last, contains('Received your photo at Dispatch'));
   });
+
+  group('language separation', () {
+    testWidgets('Khmer chat: welcome, reply, times and address are all Khmer', (
+      tester,
+    ) async {
+      await boot(tester, lang: AppLang.km);
+      // Seed welcome + location label: Khmer digits, no English name/address.
+      expect(find.textContaining('+៨៥៥'), findsWidgets);
+      expect(find.textContaining('Calmette'), findsNothing);
+      expect(find.textContaining('Kilometer'), findsNothing);
+
+      await type(tester, 'ជួយខ្ញុំផង');
+      await tester.tap(tooltip('ផ្ញើ'));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 700));
+      await tester.pump(const Duration(milliseconds: 1300));
+      await frames(tester, 3);
+      expect(
+        find.textContaining('បានទទួលសាររបស់អ្នកដោយមជ្ឈមណ្ឌលបញ្ជា'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Received'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('switching language re-renders history in the new language', (
+      tester,
+    ) async {
+      final c = await boot(tester, lang: AppLang.en);
+      expect(find.textContaining('Calmette'), findsWidgets);
+      c.read(langProvider.notifier).set(AppLang.km);
+      await frames(tester, 4);
+      expect(find.textContaining('Calmette'), findsNothing);
+      expect(find.textContaining('+៨៥៥'), findsWidgets);
+    });
+  });
 }
 
-final _f = PhnomPenhData.defaultSos;
+final _f = PhnomPenhData.facilities.firstWhere((f) => f.id == 'calmette');

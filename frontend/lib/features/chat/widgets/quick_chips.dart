@@ -19,13 +19,7 @@ class QuickChips extends ConsumerWidget {
   final VoidCallback onBleeding;
   final VoidCallback onPolice;
 
-  static const _colors = AppButtonColors(
-    bg: Color(0xFFF8FAFC),
-    hover: Color(0xFFF1F5FF),
-    pressed: Color(0xFFE0E9FF),
-    fg: Color(0xFF0F172A),
-    border: Color(0xFFE2E8F0),
-  );
+  static const _colors = AppButtonColors.glassFrost;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

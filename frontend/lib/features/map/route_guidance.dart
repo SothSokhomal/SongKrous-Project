@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:latlong2/latlong.dart';
 
+import '../../core/constants/app_strings.dart';
+
 /// First turn-by-turn step of a (mock) route.
 class RouteInstruction {
   const RouteInstruction(this.directionKey, this.meters);
@@ -10,8 +12,10 @@ class RouteInstruction {
   final String directionKey;
   final int meters;
 
-  /// `400m`
-  String get distanceLabel => '${meters}m';
+  /// `400m` / `៤០០ ម៉ែត្រ`
+  String distanceLabel(AppLang l) => l == AppLang.km
+      ? '${AppStrings.digits('$meters', l)} ${AppStrings.of('unit_m', l)}'
+      : '${meters}m';
 }
 
 const _dirs = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];

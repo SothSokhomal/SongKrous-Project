@@ -206,8 +206,8 @@ class _StepDots extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final label = ref
         .tr('step_of')
-        .replaceAll('{n}', '${current + 1}')
-        .replaceAll('{total}', '$total');
+        .replaceAll('{n}', ref.num('${current + 1}'))
+        .replaceAll('{total}', ref.num('$total'));
     return Semantics(
       label: label,
       child: ExcludeSemantics(

@@ -73,7 +73,7 @@ void main() {
   ) async {
     final c = await boot(tester, AppRoutes.home);
 
-    await tester.tap(find.text('POLICE'));
+    await tester.tap(find.text('Police'));
     await frames(tester, 12);
 
     expect(c.read(selectedMapTargetProvider), isNotNull);

@@ -7,6 +7,7 @@ import '../../core/constants/app_state.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/app_interactive.dart';
+import '../../shared/widgets/liquid_glass.dart';
 import '../../shared/widgets/main_shell.dart';
 import 'situation.dart';
 import 'widgets/urgent_banner.dart';
@@ -34,78 +35,87 @@ class _SafetyInputScreenState extends ConsumerState<SafetyInputScreen> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return SafeArea(
-      bottom: false,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              8,
-              20,
-              MainShell.navClearance(context),
-            ),
-            children: [
-              Row(
-                children: [
-                  Text(
-                    ref.tr('safety'),
-                    style: text.titleMedium?.copyWith(color: AppColors.blue),
+    return LiquidAmbientCanvas(
+      child: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: ListView(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                8,
+                20,
+                MainShell.navClearance(context),
+              ),
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      ref.tr('safety'),
+                      style: text.titleMedium?.copyWith(color: AppColors.blue),
+                    ),
+                    const Spacer(),
+                    const Icon(
+                      Icons.verified_user_rounded,
+                      color: AppColors.blue,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(ref.tr('what_happened'), style: text.headlineMedium),
+                const SizedBox(height: 6),
+                Text(
+                  ref.tr('what_happened_sub'),
+                  style: text.bodyLarge?.copyWith(
+                    color: AppColors.textSecondary,
                   ),
-                  const Spacer(),
-                  const Icon(
-                    Icons.verified_user_rounded,
-                    color: AppColors.blue,
+                ),
+                const SizedBox(height: 16),
+                const UrgentBanner(),
+                const SizedBox(height: 24),
+                Text(ref.tr('which_situation'), style: text.titleMedium),
+                const SizedBox(height: 12),
+                for (final s in Situation.values) ...[
+                  _SituationCard(
+                    situation: s,
+                    selected: s == _selected,
+                    onTap: () => setState(() => _selected = s),
                   ),
+                  const SizedBox(height: 10),
                 ],
-              ),
-              const SizedBox(height: 16),
-              Text(ref.tr('what_happened'), style: text.headlineMedium),
-              const SizedBox(height: 6),
-              Text(
-                ref.tr('what_happened_sub'),
-                style: text.bodyLarge?.copyWith(color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 16),
-              const UrgentBanner(),
-              const SizedBox(height: 24),
-              Text(ref.tr('which_situation'), style: text.titleMedium),
-              const SizedBox(height: 12),
-              for (final s in Situation.values) ...[
-                _SituationCard(
-                  situation: s,
-                  selected: s == _selected,
-                  onTap: () => setState(() => _selected = s),
+                const SizedBox(height: 14),
+                Text(ref.tr('how_feeling'), style: text.titleMedium),
+                const SizedBox(height: 12),
+                AppFocusInput(
+                  glass: true,
+                  glassBlur: false,
+                  radius: 20,
+                  builder: (context, node) => TextField(
+                    controller: _feeling,
+                    focusNode: node,
+                    minLines: 3,
+                    maxLines: 5,
+                    textInputAction: TextInputAction.newline,
+                    decoration: AppFocusInput.bareDecoration(
+                      hintText: ref.tr('feeling_hint'),
+                      hintStyle: const TextStyle(
+                        color: AppColors.textSecondary,
+                      ),
+                    ).copyWith(contentPadding: const EdgeInsets.all(16)),
+                  ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
+                AppInteractiveButton(
+                  label: ref.tr('show_tips'),
+                  trailingIcon: Icons.arrow_forward_rounded,
+                  colors: AppButtonColors.glassBlue,
+                  onPressed: () => context.push(
+                    '${AppRoutes.safetyTips}?situation=${_selected.name}',
+                  ),
+                ),
               ],
-              const SizedBox(height: 14),
-              Text(ref.tr('how_feeling'), style: text.titleMedium),
-              const SizedBox(height: 12),
-              AppFocusInput(
-                builder: (context, node) => TextField(
-                  controller: _feeling,
-                  focusNode: node,
-                  minLines: 3,
-                  maxLines: 5,
-                  textInputAction: TextInputAction.newline,
-                  decoration: AppFocusInput.bareDecoration(
-                    hintText: ref.tr('feeling_hint'),
-                    hintStyle: const TextStyle(color: AppColors.textSecondary),
-                  ).copyWith(contentPadding: const EdgeInsets.all(16)),
-                ),
-              ),
-              const SizedBox(height: 20),
-              AppInteractiveButton(
-                label: ref.tr('show_tips'),
-                trailingIcon: Icons.arrow_forward_rounded,
-                colors: AppButtonColors.primary,
-                onPressed: () => context.push(
-                  '${AppRoutes.safetyTips}?situation=${_selected.name}',
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -131,7 +141,9 @@ class _SituationCard extends ConsumerWidget {
       selected: selected,
       onTap: onTap,
       semanticLabel: ref.tr(situation.labelKey),
-      radius: 16,
+      radius: 20,
+      glass: LiquidTint.frost,
+      selectedBorder: AppColors.blueDeep,
       padding: const EdgeInsets.all(14),
       builder: (context, hovered, pressed) => Row(
         children: [
@@ -187,15 +199,7 @@ class _Illustration extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(situation.icon, color: color, size: 28),
-          ),
+          LayeredIconBadge(icon: situation.icon, color: color, size: 52),
           if (situation == Situation.car)
             const Positioned(
               right: 0,

@@ -52,7 +52,6 @@ class _KhanSheet extends ConsumerWidget {
                 for (final k in PhnomPenhKhans.all)
                   ListTile(
                     title: Text(lang == AppLang.km ? k.km : k.en),
-                    subtitle: Text(lang == AppLang.km ? k.en : k.km),
                     trailing: k.id == selected?.id
                         ? const Icon(Icons.check_rounded, color: AppColors.blue)
                         : null,

@@ -10,7 +10,8 @@ import 'package:songkrous/core/router/app_routes.dart';
 import 'package:songkrous/core/theme/app_colors.dart';
 import 'package:songkrous/main.dart';
 import 'package:songkrous/shared/widgets/app_interactive.dart';
-import 'package:songkrous/shared/widgets/shield_badge.dart';
+import 'package:songkrous/shared/widgets/emergency_emblem.dart';
+import 'package:songkrous/shared/widgets/liquid_glass.dart';
 
 /// Captured `HapticFeedback.*` calls ("lightImpact", "heavyImpact", …).
 final List<String> haptics = [];
@@ -401,9 +402,7 @@ void main() {
       await g.up();
     });
 
-    testWidgets('GPS dialog rows: #F1F5F9 on hover, haptic on tap', (
-      tester,
-    ) async {
+    testWidgets('GPS dialog rows: glass highlight on hover', (tester) async {
       await boot(tester, AppRoutes.gps);
       final row = find.text("Don't Allow");
       final g = await mouse(tester);
@@ -412,7 +411,7 @@ void main() {
       final bg = find
           .ancestor(of: row, matching: find.byType(AnimatedContainer))
           .first;
-      expect(decorationOf(tester, bg).color, const Color(0xFFF1F5F9));
+      expect(decorationOf(tester, bg).color, const Color(0x0F0F172A));
     });
 
     testWidgets('Home: Copy Location → ✓ Copied (medium haptic) → reverts', (
@@ -453,7 +452,7 @@ void main() {
             .widget<AnimatedScale>(
               find
                   .ancestor(
-                    of: find.byType(ShieldBadge).first,
+                    of: find.byType(EmergencyEmblem).first,
                     matching: find.byType(AnimatedScale),
                   )
                   .first,
@@ -512,12 +511,21 @@ void main() {
           of: find.text('mute'),
           matching: find.byType(AppPressable),
         );
-        final circle = find
-            .descendant(of: mute, matching: find.byType(AnimatedContainer))
-            .first;
+        final glass = find.descendant(
+          of: mute,
+          matching: find.byType(LiquidGlassContainer),
+        );
+        // Smoked dark glass at rest; bright frosted glass once toggled on.
+        expect(
+          tester.widget<LiquidGlassContainer>(glass).tint,
+          LiquidTint.dark,
+        );
         await tester.tap(find.text('mute'));
         await tester.pump(const Duration(milliseconds: 300));
-        expect(decorationOf(tester, circle).color, AppColors.white);
+        expect(
+          tester.widget<LiquidGlassContainer>(glass).tint,
+          LiquidTint.frostStrong,
+        );
         expect(haptics, contains('selectionClick'));
 
         haptics.clear();
@@ -638,10 +646,12 @@ void main() {
       final g = await mouse(tester);
       await g.moveTo(tester.getCenter(find.text('Khan Chamkar Mon')));
       await tester.pump(const Duration(milliseconds: 250));
-      expect(
-        decorationOf(tester, buttonBox(row)).color,
-        const Color(0xFFF8FAFF),
+      // Glass card: the rim/shadow brighten (hovered) …
+      final glass = find.descendant(
+        of: row,
+        matching: find.byType(LiquidGlassContainer),
       );
+      expect(tester.widget<LiquidGlassContainer>(glass.first).hovered, isTrue);
     });
   });
 }

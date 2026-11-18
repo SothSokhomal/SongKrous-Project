@@ -19,6 +19,7 @@ import '../../core/state/map_state.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/app_interactive.dart';
 import '../../shared/widgets/khan_picker.dart';
+import '../../shared/widgets/liquid_glass.dart';
 import 'route_guidance.dart';
 import 'widgets/facility_sheet.dart';
 import 'widgets/map_markers.dart';
@@ -403,7 +404,8 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
     _animateTo(k.center, PhnomPenh.zoom);
   }
 
-  void _call(Facility f) => context.push(AppRoutes.calling(f.nameEn, f.phone));
+  void _call(Facility f) =>
+      context.push(AppRoutes.calling(f.name(ref.read(langProvider)), f.phone));
 
   // ── Build ─────────────────────────────────────────────────────────────
 
@@ -627,11 +629,12 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       semanticLabel: ref.tr('recenter'),
                       colors: const AppButtonColors(
-                        bg: AppColors.blue,
-                        hover: Color(0xFF2563EB),
-                        pressed: Color(0xFF1E40AF),
-                        fg: AppColors.white,
-                        shadow: AppColors.blue,
+                        bg: AppColors.white,
+                        hover: AppColors.white,
+                        pressed: AppColors.white,
+                        fg: AppColors.blueDeep,
+                        glass: LiquidTint.frost,
+                        blur: true,
                       ),
                       haptic: AppHaptic.light,
                       onPressed: () => category == null
@@ -639,7 +642,7 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
                           : _syncCamera(redrawRoute: false, keepSheet: true),
                       child: const Icon(
                         Icons.my_location_rounded,
-                        color: AppColors.white,
+                        color: AppColors.blueDeep,
                       ),
                     ),
                   ),
@@ -755,7 +758,7 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
     return NavBanner(
       key: const ValueKey('nav-banner'),
       instruction: text,
-      distance: inst.distanceLabel,
+      distance: inst.distanceLabel(lang),
       onExit: () => setState(() => _navigating = false),
     );
   }
@@ -775,13 +778,8 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
         AppFocusInput(
           radius: 28,
           focusNode: _searchFocus,
-          restShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
+          // Frosted glass: map streets refract through the bar.
+          glass: true,
           builder: (context, node) => TextField(
             controller: _search,
             focusNode: node,
@@ -821,11 +819,11 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
             padding: const EdgeInsets.fromLTRB(12, 0, 6, 0),
             colors: const AppButtonColors(
               bg: AppColors.white,
-              hover: Color(0xFFF1F5FF),
-              pressed: Color(0xFFE0E9FF),
+              hover: AppColors.white,
+              pressed: AppColors.white,
               fg: AppColors.textPrimary,
-              border: Color(0xFFE2E8F0),
-              shadow: Color(0xFF0F172A),
+              glass: LiquidTint.frost,
+              blur: true,
             ),
             haptic: AppHaptic.selection,
             onPressed: _pickKhan,
@@ -956,7 +954,7 @@ class _SearchResults extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    subtitle: Text(r.summary),
+                    subtitle: Text(r.summary(lang)),
                     onTap: () => onSelect(r.facility),
                   ),
               ],

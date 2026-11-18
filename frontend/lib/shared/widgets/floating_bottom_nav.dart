@@ -5,6 +5,7 @@ import '../../core/animations/app_animations.dart';
 import '../../core/constants/app_state.dart';
 import '../../core/theme/app_colors.dart';
 import 'app_interactive.dart';
+import 'liquid_glass.dart';
 
 class _NavItem {
   const _NavItem(this.icon, this.labelKey, {this.badge});
@@ -14,13 +15,17 @@ class _NavItem {
 }
 
 const _items = [
-  _NavItem(Icons.shield_outlined, 'nav_home', badge: 'SOS'),
+  _NavItem(Icons.shield_outlined, 'nav_home', badge: 'sos_shortcut'),
   _NavItem(Icons.map_outlined, 'nav_map'),
   _NavItem(Icons.chat_bubble_outline_rounded, 'nav_safety'),
   _NavItem(Icons.phone_outlined, 'nav_hotlines'),
 ];
 
-/// White pill bar floating 16px above the bottom safe area.
+/// iOS 26 Liquid Glass dock floating 16 px above the bottom safe area.
+///
+/// A real `BackdropFilter` (σ 22) lets map roads, pins and screen colours
+/// refract through the bar; a translucent "lens" capsule slides behind the
+/// active tab. The red `SOS` badge stays crisp on top.
 class FloatingBottomNav extends ConsumerWidget {
   const FloatingBottomNav({
     super.key,
@@ -37,33 +42,72 @@ class FloatingBottomNav extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final last = _items.length - 1;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, gap),
-        child: Container(
+        child: LiquidGlassContainer(
+          radius: 32,
+          sigma: 22,
           height: height,
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(32),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.14),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
+          child: Stack(
             children: [
-              for (var i = 0; i < _items.length; i++)
-                Expanded(
-                  child: _NavButton(
-                    item: _items[i],
-                    label: ref.tr(_items[i].labelKey),
-                    selected: i == currentIndex,
-                    onTap: () => onTap(i),
+              // Sliding liquid lens behind the active tab.
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: AnimatedAlign(
+                    duration: const Duration(milliseconds: 280),
+                    curve: AppCurves.out,
+                    alignment: Alignment(-1 + 2 * currentIndex / last, 0),
+                    child: FractionallySizedBox(
+                      widthFactor: 1 / _items.length,
+                      heightFactor: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(26),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.white.withValues(alpha: 0.85),
+                                const Color(0xFFDBEAFE).withValues(alpha: 0.65),
+                              ],
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.9),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.blue.withValues(alpha: 0.16),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
+              ),
+              Row(
+                children: [
+                  for (var i = 0; i < _items.length; i++)
+                    Expanded(
+                      child: _NavButton(
+                        item: _items[i],
+                        label: ref.tr(_items[i].labelKey),
+                        badge: _items[i].badge == null
+                            ? null
+                            : ref.tr(_items[i].badge!),
+                        selected: i == currentIndex,
+                        onTap: () => onTap(i),
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
         ),
@@ -76,12 +120,14 @@ class _NavButton extends StatelessWidget {
   const _NavButton({
     required this.item,
     required this.label,
+    this.badge,
     required this.selected,
     required this.onTap,
   });
 
   final _NavItem item;
   final String label;
+  final String? badge;
   final bool selected;
   final VoidCallback onTap;
 
@@ -131,7 +177,7 @@ class _NavButton extends StatelessWidget {
                       ),
                     ),
                     // The SOS badge stays crisp (not scaled/lifted).
-                    if (item.badge != null)
+                    if (badge != null)
                       Positioned(
                         top: -6,
                         right: -16,
@@ -145,7 +191,7 @@ class _NavButton extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            item.badge!,
+                            badge!,
                             style: const TextStyle(
                               color: AppColors.white,
                               fontSize: 9,

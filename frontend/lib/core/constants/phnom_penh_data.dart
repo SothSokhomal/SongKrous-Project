@@ -28,10 +28,13 @@ abstract final class PhnomPenhData {
     Facility(
       id: 'calmette',
       type: FacilityType.hospital,
+      shortNameEn: 'Calmette Hospital',
+      shortNameKm: 'មន្ទីរពេទ្យកាល់ម៉ែត',
       nameEn: 'Calmette Hospital',
       nameKm: 'មន្ទីរពេទ្យកាល់ម៉ែត',
       khanId: 'doun_penh',
       address: '34 Preah Monivong Blvd (93)',
+      addressKm: 'មហាវិថីព្រះមុនីវង្ស (៩៣) លេខ ៣៤',
       location: LatLng(11.5732, 104.9176),
       phone: '+855 23 426 948',
       altPhone: '+855 23 724 891',
@@ -80,10 +83,13 @@ abstract final class PhnomPenhData {
     Facility(
       id: 'pp_police_598',
       type: FacilityType.police,
+      shortNameEn: 'Phnom Penh Police',
+      shortNameKm: 'នគរបាលភ្នំពេញ',
       nameEn: 'Phnom Penh Police Station (St. 598)',
       nameKm: 'ប៉ុស្តិ៍នគរបាលភ្នំពេញ (ផ្លូវ ៥៩៨)',
       khanId: 'russey_keo',
       address: 'St. 598',
+      addressKm: 'ផ្លូវ ៥៩៨',
       location: LatLng(11.5846, 104.9130),
       phone: '012 855 706',
       mockKm: 0.4,
@@ -127,6 +133,8 @@ abstract final class PhnomPenhData {
     Facility(
       id: 'rk_fire',
       type: FacilityType.fire,
+      shortNameEn: 'Russey Keo Fire',
+      shortNameKm: 'ពន្លត់អគ្គិភ័យឫស្សីកែវ',
       nameEn: 'Fire Police Office, Russey Keo',
       nameKm: 'ការិយាល័យនគរបាលពន្លត់អគ្គិភ័យ ឫស្សីកែវ',
       khanId: 'russey_keo',
@@ -212,13 +220,18 @@ class RankedFacility {
   final double km;
   final int minutes;
 
-  String get kmLabel => '${km.toStringAsFixed(1)} km';
+  /// `1.2 km` / `១.២ គ.ម`
+  String kmLabel(AppLang l) =>
+      '${AppStrings.digits(km.toStringAsFixed(1), l)} ${AppStrings.of('unit_km', l)}';
 
-  /// `1.2 km · 4 min` (sheet rows)
-  String get summary => '$kmLabel · $minutes min';
+  String _min(AppLang l) =>
+      '${AppStrings.digits('$minutes', l)} ${AppStrings.of('unit_min', l)}';
+
+  /// `1.2 km · 4 min` (sheet rows, home cards)
+  String summary(AppLang l) => '${kmLabel(l)} · ${_min(l)}';
 
   /// `4 min • 1.2 km` (navigation pill)
-  String get pillSummary => '$minutes min • $kmLabel';
+  String pillSummary(AppLang l) => '${_min(l)} • ${kmLabel(l)}';
 }
 
 /// Facilities sorted closest-first, optionally filtered by [type] and by a

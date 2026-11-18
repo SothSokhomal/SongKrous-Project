@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/animations/app_animations.dart';
 import '../../core/theme/app_colors.dart';
+import 'liquid_glass.dart';
 
 /// Shared micro-interaction vocabulary.
 ///
@@ -165,6 +166,8 @@ class AppButtonColors {
     required this.fg,
     this.border,
     this.shadow,
+    this.glass,
+    this.blur = false,
   });
 
   final Color bg;
@@ -175,6 +178,14 @@ class AppButtonColors {
 
   /// Glow colour; null → no elevation shadow (outline / ghost buttons).
   final Color? shadow;
+
+  /// When set, the button is drawn as Liquid Glass of this tint (rim, sheen,
+  /// translucent fill) instead of a flat fill.
+  final LiquidTint? glass;
+
+  /// Real `BackdropFilter` blur behind a glass button (only for floating
+  /// controls over the map — never inside scrolling lists).
+  final bool blur;
 
   /// Primary Blue `#0F3D91` → hover `#174DB3` → pressed `#0A2B66`.
   static const primary = AppButtonColors(
@@ -217,6 +228,71 @@ class AppButtonColors {
     hover: Colors.white.withValues(alpha: 0.26),
     pressed: Colors.white.withValues(alpha: 0.34),
     fg: AppColors.white,
+  );
+
+  // ── Liquid Glass variants ─────────────────────────────────────────
+
+  /// Glossy red glass — primary emergency call.
+  static const glassRed = AppButtonColors(
+    bg: AppColors.red,
+    hover: AppColors.red,
+    pressed: AppColors.red,
+    fg: AppColors.white,
+    glass: LiquidTint.red,
+  );
+
+  /// Glossy trust-blue glass.
+  static const glassBlue = AppButtonColors(
+    bg: AppColors.blueDeep,
+    hover: AppColors.blueDeep,
+    pressed: AppColors.blueDeep,
+    fg: AppColors.white,
+    glass: LiquidTint.blue,
+  );
+
+  /// Frosted white glass with dark text (secondary actions).
+  static const glassFrost = AppButtonColors(
+    bg: AppColors.white,
+    hover: AppColors.white,
+    pressed: AppColors.white,
+    fg: AppColors.ink,
+    glass: LiquidTint.frost,
+  );
+
+  /// Frosted glass with a coloured label.
+  static AppButtonColors glassFrostAccent(Color accent) => AppButtonColors(
+    bg: AppColors.white,
+    hover: AppColors.white,
+    pressed: AppColors.white,
+    fg: accent,
+    glass: LiquidTint.frost,
+  );
+
+  /// Near-opaque white glass on the blue hero card ("Copy Location").
+  static const glassOnBlueSolid = AppButtonColors(
+    bg: AppColors.white,
+    hover: AppColors.white,
+    pressed: AppColors.white,
+    fg: AppColors.blueDeep,
+    glass: LiquidTint.frostStrong,
+  );
+
+  /// Translucent glass on the blue hero card ("View Map").
+  static const glassOnBlue = AppButtonColors(
+    bg: AppColors.white,
+    hover: AppColors.white,
+    pressed: AppColors.white,
+    fg: AppColors.white,
+    glass: LiquidTint.onBlue,
+  );
+
+  /// Smoked dark glass (outgoing-call screen).
+  static const glassDark = AppButtonColors(
+    bg: AppColors.ink,
+    hover: AppColors.ink,
+    pressed: AppColors.ink,
+    fg: AppColors.white,
+    glass: LiquidTint.dark,
   );
 
   /// Light pill with a hairline border (e.g. the Khan dropdown).
@@ -367,6 +443,39 @@ class AppInteractiveButton extends StatelessWidget {
               ],
             );
 
+        // Liquid Glass: translucent fill + specular rim instead of a flat fill.
+        if (colors.glass != null) {
+          return AnimatedOpacity(
+            duration: _dur,
+            opacity: enabled ? 1 : 0.5,
+            child: AnimatedScale(
+              duration: _dur,
+              curve: AppCurves.out,
+              scale: pressed ? 0.965 : 1.0,
+              child: AnimatedContainer(
+                duration: _dur,
+                curve: AppCurves.out,
+                transform: Matrix4.translationValues(
+                  0,
+                  hovered && !pressed ? -1.5 : 0,
+                  0,
+                ),
+                child: LiquidGlassContainer(
+                  radius: r,
+                  tint: colors.glass!,
+                  useBlur: colors.blur,
+                  hovered: hovered,
+                  pressed: pressed,
+                  height: height,
+                  padding: padding,
+                  alignment: expand ? Alignment.center : null,
+                  child: content,
+                ),
+              ),
+            ),
+          );
+        }
+
         return AnimatedOpacity(
           duration: _dur,
           opacity: enabled ? 1 : 0.5,
@@ -444,6 +553,8 @@ class AppInteractiveCard extends StatelessWidget {
     this.restShadow = const [],
     this.clip = Clip.none,
     this.semanticLabel,
+    this.glass,
+    this.glassBlur = false,
   }) : assert(child != null || builder != null);
 
   final Widget? child;
@@ -469,6 +580,14 @@ class AppInteractiveCard extends StatelessWidget {
   final List<BoxShadow> restShadow;
   final Clip clip;
   final String? semanticLabel;
+
+  /// Draw as Liquid Glass of this tint (rim + translucent fill) instead of a
+  /// flat card.
+  final LiquidTint? glass;
+
+  /// `BackdropFilter` blur for glass cards. Off by default: cards usually sit
+  /// in scrolling lists.
+  final bool glassBlur;
 
   static const _dur = Duration(milliseconds: 160);
 
@@ -507,6 +626,57 @@ class AppInteractiveCard extends StatelessWidget {
                   ),
                 ]
               : restShadow;
+
+          if (glass != null) {
+            final content = builder != null
+                ? builder!(context, hovered, pressed)
+                : child;
+            return AnimatedScale(
+              duration: const Duration(milliseconds: 120),
+              curve: AppCurves.out,
+              scale: pressed ? pressedScale : 1.0,
+              child: AnimatedContainer(
+                duration: _dur,
+                curve: AppCurves.out,
+                transform: Matrix4.translationValues(
+                  0,
+                  hovered && !pressed ? -1.5 : 0,
+                  0,
+                ),
+                child: Stack(
+                  children: [
+                    LiquidGlassContainer(
+                      radius: radius,
+                      tint: glass!,
+                      useBlur: glassBlur,
+                      hovered: hovered,
+                      pressed: pressed,
+                      padding: padding,
+                      child: content,
+                    ),
+                    // Selected: a crisp 2 px ring over the glass.
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: AppCurves.out,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(radius),
+                            border: Border.all(
+                              color: selected
+                                  ? selectedBorder
+                                  : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
 
           return AnimatedScale(
             duration: const Duration(milliseconds: 120),
@@ -552,7 +722,16 @@ class AppFocusInput extends StatefulWidget {
     this.radius = 16,
     this.fill = AppColors.white,
     this.restShadow = const [],
+    this.glass = false,
+    this.glassBlur = true,
   });
+
+  /// `BackdropFilter` blur for the glass field (off inside scrolling lists).
+  final bool glassBlur;
+
+  /// Draw the field as frosted Liquid Glass (blur + specular rim). The focus
+  /// ring and the 2 px focused border still apply.
+  final bool glass;
 
   /// Builds the field, wired to the focus node this widget listens to.
   final Widget Function(BuildContext context, FocusNode focusNode) builder;
@@ -640,6 +819,51 @@ class _AppFocusInputState extends State<AppFocusInput> {
         : _hovered
         ? const Color(0xFF94A3B8)
         : const Color(0xFFE2E8F0);
+
+    if (widget.glass) {
+      return MouseRegion(
+        cursor: SystemMouseCursors.text,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: AppCurves.out,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(widget.radius),
+            boxShadow: focused
+                ? [
+                    BoxShadow(
+                      color: AppColors.blue.withValues(alpha: 0.12),
+                      spreadRadius: 4,
+                      blurRadius: 0,
+                    ),
+                  ]
+                : const [],
+          ),
+          child: LiquidGlassContainer(
+            radius: widget.radius,
+            useBlur: widget.glassBlur,
+            hovered: _hovered,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: AppCurves.out,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(widget.radius),
+                border: Border.all(
+                  color: focused
+                      ? AppColors.blueDeep
+                      : (_hovered
+                            ? const Color(0xFF94A3B8)
+                            : Colors.transparent),
+                  width: focused ? 2 : 1,
+                ),
+              ),
+              child: widget.builder(context, _node),
+            ),
+          ),
+        ),
+      );
+    }
 
     return MouseRegion(
       cursor: SystemMouseCursors.text,

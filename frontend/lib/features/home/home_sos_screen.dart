@@ -16,12 +16,15 @@ import '../../core/state/location_state.dart';
 import '../../core/state/map_state.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/app_interactive.dart';
+import '../../shared/widgets/emergency_emblem.dart';
 import '../../shared/widgets/khan_picker.dart';
 import '../../shared/widgets/language_toggle.dart';
+import '../../shared/widgets/liquid_glass.dart';
 import '../../shared/widgets/main_shell.dart';
-import '../../shared/widgets/shield_badge.dart';
 
-/// 03_Home_SOS — location banner + three emergency category cards, staggered in.
+/// 03_Home_SOS — Liquid Glass: a glossy blue location hero and three detailed
+/// emergency cards (live nearest facility, distance/ETA, direct line), staggered
+/// in over a soft ambient canvas.
 class HomeSosScreen extends ConsumerWidget {
   const HomeSosScreen({super.key});
 
@@ -31,7 +34,9 @@ class HomeSosScreen extends ConsumerWidget {
 
   Future<void> _copy(BuildContext context, WidgetRef ref) async {
     await Clipboard.setData(
-      ClipboardData(text: ref.read(locationProvider).shareText),
+      ClipboardData(
+        text: ref.read(locationProvider).shareTextFor(ref.read(langProvider)),
+      ),
     );
     if (!context.mounted) return;
     ScaffoldMessenger.of(context)
@@ -51,78 +56,85 @@ class HomeSosScreen extends ConsumerWidget {
     context.go(AppRoutes.map);
   }
 
-  void _sos(BuildContext context, WidgetRef ref, FacilityType type) {
-    final loc = ref.read(locationProvider);
-    final nearest = rankFacilities(loc.latLng, type: type).firstOrNull;
-    context.push(AppRoutes.sosCall, extra: nearest?.facility);
+  void _sos(BuildContext context, WidgetRef ref, Facility? facility) {
+    context.push(AppRoutes.sosCall, extra: facility);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final loc = ref.watch(locationProvider);
 
-    return SafeArea(
-      bottom: false,
-      child: StaggerScope(
-        builder: (context, animation) => ListView(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            12,
-            20,
-            MainShell.navClearance(context),
-          ),
-          children: [
-            _TopBar(
-              gpsActive: loc.gpsActive,
-              onGpsTap: () async {
-                if (loc.gpsActive) return;
-                // GPS off: try again, then fall back to manual Khan selection.
-                final ok = await ref
-                    .read(locationProvider.notifier)
-                    .requestPermission();
-                if (!ok && context.mounted) {
-                  final khan = await showKhanPicker(
-                    context,
-                    selected: loc.khan,
-                  );
-                  if (khan != null) {
-                    ref.read(locationProvider.notifier).setKhan(khan);
+    return LiquidAmbientCanvas(
+      child: SafeArea(
+        bottom: false,
+        child: StaggerScope(
+          builder: (context, animation) => ListView(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              12,
+              20,
+              MainShell.navClearance(context),
+            ),
+            children: [
+              _TopBar(
+                gpsActive: loc.gpsActive,
+                onGpsTap: () async {
+                  if (loc.gpsActive) return;
+                  // GPS off: try again, then fall back to manual Khan selection.
+                  final ok = await ref
+                      .read(locationProvider.notifier)
+                      .requestPermission();
+                  if (!ok && context.mounted) {
+                    final khan = await showKhanPicker(
+                      context,
+                      selected: loc.khan,
+                    );
+                    if (khan != null) {
+                      ref.read(locationProvider.notifier).setKhan(khan);
+                    }
                   }
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-            StaggeredEntrance(
-              animation: animation,
-              begin: _bannerSlice.$1,
-              end: _bannerSlice.$2,
-              child: _LocationCard(
-                loc: loc,
-                onCopy: () => _copy(context, ref),
-                onViewMap: () => _openMap(context, ref, null),
+                },
               ),
-            ),
-            const SizedBox(height: 20),
-            for (var i = 0; i < FacilityType.values.length; i++)
+              const SizedBox(height: 16),
               StaggeredEntrance(
                 animation: animation,
-                begin: _cardSlices[i].$1,
-                end: _cardSlices[i].$2,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 14),
-                  child: _CategoryCard(
-                    type: FacilityType.values[i],
-                    onTap: () => _openMap(context, ref, FacilityType.values[i]),
-                    onSos: () => _sos(context, ref, FacilityType.values[i]),
-                  ),
+                begin: _bannerSlice.$1,
+                end: _bannerSlice.$2,
+                child: _LocationHero(
+                  loc: loc,
+                  onCopy: () => _copy(context, ref),
+                  onViewMap: () => _openMap(context, ref, null),
                 ),
               ),
-          ],
+              const SizedBox(height: 20),
+              for (var i = 0; i < FacilityType.values.length; i++)
+                StaggeredEntrance(
+                  animation: animation,
+                  begin: _cardSlices[i].$1,
+                  end: _cardSlices[i].$2,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: _CategoryCard(
+                      type: FacilityType.values[i],
+                      nearest: rankFacilities(
+                        loc.latLng,
+                        type: FacilityType.values[i],
+                      ).firstOrNull,
+                      onTap: () =>
+                          _openMap(context, ref, FacilityType.values[i]),
+                      onSos: (f) => _sos(context, ref, f),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+// ── Top bar ────────────────────────────────────────────────────────────────
 
 class _TopBar extends ConsumerWidget {
   const _TopBar({required this.gpsActive, required this.onGpsTap});
@@ -132,7 +144,7 @@ class _TopBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final color = gpsActive ? AppColors.blue : AppColors.red;
+    final color = gpsActive ? AppColors.blueDeep : AppColors.red;
     return Row(
       children: [
         const Icon(
@@ -141,9 +153,10 @@ class _TopBar extends ConsumerWidget {
           size: 28,
         ),
         const SizedBox(width: 8),
-        Flexible(
+        Expanded(
           child: Text(
-            'SONGKROUS',
+            ref.tr('app_name'),
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: AppColors.blueDeep,
@@ -152,53 +165,57 @@ class _TopBar extends ConsumerWidget {
             ),
           ),
         ),
-        const Spacer(),
-        Semantics(
-          button: true,
-          child: AppPressable(
-            onTap: onGpsTap,
-            haptic: AppHaptic.selection,
-            builder: (context, hovered, pressed) => AnimatedScale(
-              duration: const Duration(milliseconds: 120),
-              curve: AppCurves.out,
-              scale: pressed ? 0.95 : 1.0,
-              child: AnimatedContainer(
-                duration: AppDurations.fast,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: gpsActive
-                      ? (hovered ? const Color(0xFFD6E4FD) : AppColors.blueSoft)
-                      : (hovered ? const Color(0xFFFDD5D9) : AppColors.redSoft),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Live status: pulsing ripple only while GPS is active.
-                    if (gpsActive)
-                      const LiveBeacon(color: AppColors.blue, size: 8)
-                    else
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: AppColors.red,
-                          shape: BoxShape.circle,
+        const SizedBox(width: 8),
+        // GPS status: frosted glass pill with a live green beacon.
+        Flexible(
+          child: Semantics(
+            button: true,
+            child: AppPressable(
+              onTap: onGpsTap,
+              haptic: AppHaptic.selection,
+              builder: (context, hovered, pressed) => AnimatedScale(
+                duration: const Duration(milliseconds: 120),
+                curve: AppCurves.out,
+                scale: pressed ? 0.95 : 1.0,
+                child: LiquidGlassContainer(
+                  radius: 16,
+                  useBlur: false,
+                  hovered: hovered,
+                  pressed: pressed,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (gpsActive)
+                        const LiveBeacon(color: AppColors.success, size: 8)
+                      else
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          ref.tr(gpsActive ? 'gps_active' : 'gps_off'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: color,
+                            fontFamilyFallback: const ['Noto Sans Khmer'],
+                          ),
                         ),
                       ),
-                    const SizedBox(width: 8),
-                    Text(
-                      ref.tr(gpsActive ? 'gps_active' : 'gps_off'),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: color,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -211,8 +228,10 @@ class _TopBar extends ConsumerWidget {
   }
 }
 
-class _LocationCard extends ConsumerWidget {
-  const _LocationCard({
+// ── Location hero ──────────────────────────────────────────────────────────
+
+class _LocationHero extends ConsumerWidget {
+  const _LocationHero({
     required this.loc,
     required this.onCopy,
     required this.onViewMap,
@@ -225,45 +244,98 @@ class _LocationCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.blueDeep,
-        borderRadius: BorderRadius.circular(18),
-      ),
+    final lang = ref.watch(langProvider);
+    return LiquidGlassContainer(
+      radius: 26,
+      tint: LiquidTint.blue,
+      useBlur: false,
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '📍 ${ref.tr('your_location')}',
-            style: text.labelSmall?.copyWith(
-              color: AppColors.white.withValues(alpha: 0.85),
-              letterSpacing: 1,
-              fontWeight: FontWeight.w700,
-            ),
+          Row(
+            children: [
+              if (loc.gpsActive)
+                const LiveBeacon(color: Color(0xFF4ADE80), size: 8)
+              else
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              const SizedBox(width: 10),
+              Text(
+                '📍 ${ref.tr('your_location')}',
+                style: text.labelSmall?.copyWith(
+                  color: AppColors.white.withValues(alpha: 0.9),
+                  letterSpacing: 1,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
-            loc.headline,
-            style: text.titleLarge?.copyWith(color: AppColors.white),
+            loc.headlineFor(lang),
+            style: text.titleLarge?.copyWith(
+              color: AppColors.white,
+              fontSize: 21,
+              height: 1.4,
+            ),
           ),
           const SizedBox(height: 2),
           Text(
-            loc.khanLine,
+            loc.khanLineFor(lang),
             style: text.bodyMedium?.copyWith(
-              color: AppColors.white.withValues(alpha: 0.9),
+              color: AppColors.white.withValues(alpha: 0.92),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
+          // Coordinates in a frosted pill.
+          LiquidGlassContainer(
+            radius: 14,
+            tint: LiquidTint.onBlue,
+            useBlur: false,
+            shadow: false,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.my_location_rounded,
+                  size: 14,
+                  color: AppColors.white.withValues(alpha: 0.95),
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    loc.coordinatesFor(lang),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(child: _CopyPill(onCopy: onCopy)),
               const SizedBox(width: 10),
               Expanded(
-                child: _Pill(
+                child: _GlassPill(
                   icon: Icons.map_rounded,
                   label: ref.tr('view_map'),
-                  colors: AppButtonColors.onDarkGlass,
+                  colors: AppButtonColors.glassOnBlue,
                   onTap: onViewMap,
                 ),
               ),
@@ -275,7 +347,7 @@ class _LocationCard extends ConsumerWidget {
   }
 }
 
-/// `Copy Location` → `Copied ✓` for 2 s, cross-faded with [AnimatedSwitcher].
+/// `Copy Location` → `✓ Copied` for 2 s, cross-faded with [AnimatedSwitcher].
 class _CopyPill extends ConsumerStatefulWidget {
   const _CopyPill({required this.onCopy});
 
@@ -309,30 +381,28 @@ class _CopyPillState extends ConsumerState<_CopyPill> {
   Widget build(BuildContext context) {
     return Semantics(
       liveRegion: true,
-      child: _Pill(
+      child: _GlassPill(
         icon: _copied ? Icons.check_rounded : Icons.copy_rounded,
-        label: _copied ? '✓ ${_copiedLabel()}' : ref.tr('copy_location'),
-        // Soft green confirmation while "Copied".
+        label: _copied ? '✓ ${ref.tr('copied')}' : ref.tr('copy_location'),
         colors: _copied
             ? const AppButtonColors(
-                bg: Color(0xFFECFDF3),
-                hover: Color(0xFFECFDF3),
-                pressed: Color(0xFFD1FADF),
-                fg: AppColors.success,
+                bg: AppColors.white,
+                hover: AppColors.white,
+                pressed: AppColors.white,
+                fg: Color(0xFF15803D), // 4.9:1 on the near-white glass
+                glass: LiquidTint.frostStrong,
               )
-            : AppButtonColors.onDarkSolid,
+            : AppButtonColors.glassOnBlueSolid,
         switchKey: _copied,
         haptic: AppHaptic.medium,
         onTap: _onTap,
       ),
     );
   }
-
-  String _copiedLabel() => ref.tr('copied');
 }
 
-class _Pill extends StatelessWidget {
-  const _Pill({
+class _GlassPill extends StatelessWidget {
+  const _GlassPill({
     required this.icon,
     required this.label,
     required this.colors,
@@ -353,7 +423,7 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppInteractiveButton(
-      height: 44,
+      height: 46,
       padding: const EdgeInsets.symmetric(horizontal: 10),
       colors: colors,
       haptic: haptic,
@@ -383,7 +453,7 @@ class _Pill extends StatelessWidget {
                 style: TextStyle(
                   color: colors.fg,
                   fontWeight: FontWeight.w700,
-                  fontSize: 13,
+                  fontSize: 13.5,
                   fontFamilyFallback: const ['Noto Sans Khmer'],
                 ),
               ),
@@ -395,98 +465,213 @@ class _Pill extends StatelessWidget {
   }
 }
 
+// ── Emergency category card ────────────────────────────────────────────────
+
 class _CategoryCard extends ConsumerWidget {
   const _CategoryCard({
     required this.type,
+    required this.nearest,
     required this.onTap,
     required this.onSos,
   });
 
   final FacilityType type;
+
+  /// Closest facility of this type (live distance/ETA), or null.
+  final RankedFacility? nearest;
   final VoidCallback onTap;
-  final VoidCallback onSos;
+  final ValueChanged<Facility?> onSos;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final label = switch (type) {
-      FacilityType.hospital => ref.tr('medical'),
-      FacilityType.police => ref.tr('police'),
-      FacilityType.fire => ref.tr('fire'),
+    final lang = ref.watch(langProvider);
+    final key = switch (type) {
+      FacilityType.hospital => 'medical',
+      FacilityType.police => 'police',
+      FacilityType.fire => 'fire',
     };
-    return SizedBox(
-      height: 104,
-      child: AppInteractiveCard(
-        semanticLabel: label,
-        radius: 18,
-        clip: Clip.antiAlias,
-        onTap: onTap,
-        // Emergency card: stronger haptic, red-tinted hover, sinks to 0.97.
-        haptic: AppHaptic.medium,
-        pressedScale: 0.97,
-        restBorder: null,
-        hoverBorder: const Color(0xFFFCA5A5),
-        hoverSurface: const Color(0xFFFFFBFB),
-        restShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-        builder: (context, hovered, pressed) => Row(
-          children: [
-            // Accent strip widens 4 → 6 px on hover.
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              curve: AppCurves.out,
-              width: hovered ? 6 : 4,
-              color: AppColors.red,
+    // One language only — never "English / Khmer".
+    final title = ref.tr('cat_$key');
+
+    final facility = nearest?.facility;
+    final subtitle = nearest == null
+        ? ''
+        : '${facility!.shortName(lang)} • ${nearest!.summary(lang)}';
+    final pill = switch (type) {
+      FacilityType.hospital => ref.tr('tag_er'),
+      FacilityType.police =>
+        ref
+            .tr('pill_direct')
+            .replaceAll(
+              '{phone}',
+              ref.num(facility?.phone ?? EmergencyNumbers.police),
             ),
-            const SizedBox(width: 54),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedScale(
-                    duration: const Duration(milliseconds: 160),
-                    curve: AppCurves.out,
-                    scale: hovered ? 1.06 : 1.0,
-                    child: ShieldBadge(type: type, size: 54),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    type == FacilityType.police ? label.toUpperCase() : label,
-                    style: Theme.of(context).textTheme.labelLarge
-                        ?.copyWith(color: AppColors.textPrimary),
-                  ),
-                ],
+      FacilityType.fire =>
+        ref
+            .tr('pill_hotline')
+            .replaceAll(
+              '{phone}',
+              ref.num(facility?.phone ?? EmergencyNumbers.fire),
+            ),
+    };
+    final accent = type == FacilityType.police ? AppColors.blue : AppColors.red;
+
+    return AppInteractiveCard(
+      semanticLabel: title,
+      radius: 22,
+      glass: LiquidTint.frost,
+      onTap: onTap,
+      // Emergency card: stronger haptic, deeper sink.
+      haptic: AppHaptic.medium,
+      pressedScale: 0.97,
+      padding: const EdgeInsets.fromLTRB(0, 14, 14, 14),
+      builder: (context, hovered, pressed) => Row(
+        children: [
+          // Left accent glow strip: 4 → 6 px on hover.
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            curve: AppCurves.out,
+            width: hovered ? 6 : 4,
+            height: 62,
+            decoration: BoxDecoration(
+              color: accent,
+              borderRadius: const BorderRadius.horizontal(
+                right: Radius.circular(4),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.45),
+                  blurRadius: 12,
+                ),
+              ],
             ),
-            SizedBox(
-              width: 56,
-              child: Center(
-                child: AppScaleButton(
-                  tooltip: 'SOS',
-                  semanticLabel: 'SOS $label',
-                  onTap: onSos,
-                  haptic: AppHaptic.medium,
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: const BoxDecoration(
-                      color: AppColors.red,
-                      shape: BoxShape.circle,
+          ),
+          const SizedBox(width: 12),
+          AnimatedScale(
+            duration: const Duration(milliseconds: 160),
+            curve: AppCurves.out,
+            scale: hovered ? 1.06 : 1.0,
+            child: EmergencyEmblem(type: type, size: 60),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16.5,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    height: 1.4,
+                    fontFamilyFallback: ['Noto Sans Khmer'],
+                  ),
+                ),
+                if (subtitle.isNotEmpty)
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF475569), // 7.6:1 on the frosted card
+                      height: 1.45,
+                      fontFamilyFallback: ['Noto Sans Khmer'],
                     ),
-                    child: const Icon(
-                      Icons.call_rounded,
-                      size: 20,
-                      color: AppColors.white,
+                  ),
+                const SizedBox(height: 6),
+                LiquidGlassContainer(
+                  radius: 10,
+                  tint: LiquidTint.frostStrong,
+                  useBlur: false,
+                  shadow: false,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  child: Text(
+                    pill,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.3,
+                      color: type == FacilityType.police
+                          ? AppColors.blueDeep
+                          : const Color(0xFFB3121F),
+                      fontFamilyFallback: const ['Noto Sans Khmer'],
                     ),
                   ),
                 ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          _GlassChevron(
+            tooltip: ref.tr('sos_shortcut'),
+            label: '${ref.tr('sos_shortcut')} $title',
+            onTap: () => onSos(facility),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 36 px glass circle with a chevron that nudges right on hover; opens the
+/// SOS screen for the nearest facility.
+class _GlassChevron extends StatelessWidget {
+  const _GlassChevron({
+    required this.label,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final String label;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: AppPressable(
+          onTap: onTap,
+          haptic: AppHaptic.medium,
+          builder: (context, hovered, pressed) => AnimatedScale(
+            duration: const Duration(milliseconds: 130),
+            curve: AppCurves.out,
+            scale: pressed
+                ? 0.90
+                : hovered
+                ? 1.08
+                : 1.0,
+            child: LiquidGlassContainer(
+              radius: 18,
+              tint: LiquidTint.frostStrong,
+              useBlur: false,
+              hovered: hovered,
+              pressed: pressed,
+              width: 36,
+              height: 36,
+              alignment: Alignment.center,
+              child: AnimatedSlide(
+                duration: const Duration(milliseconds: 130),
+                curve: AppCurves.out,
+                offset: Offset(hovered ? 4 / 22 : 0, 0),
+                child: const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 22,
+                  color: AppColors.blueDeep,
+                ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

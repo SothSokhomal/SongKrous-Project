@@ -7,6 +7,7 @@ import '../../core/constants/app_state.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/app_interactive.dart';
+import '../../shared/widgets/liquid_glass.dart';
 import '../../shared/widgets/main_shell.dart';
 import 'situation.dart';
 import 'widgets/breathing_ring.dart';
@@ -40,82 +41,84 @@ class SafetyTipsScreen extends ConsumerWidget {
       breathing: keys[i] == 'tip_breath',
     );
 
-    return SafeArea(
-      bottom: false,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: StaggerScope(
-            builder: (context, animation) => ListView(
-              padding: EdgeInsets.fromLTRB(
-                12,
-                0,
-                20,
-                MainShell.navClearance(context),
-              ),
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: AppBackButton(
-                    label: ref.tr('your_tips'),
-                    onTap: () => context.canPop()
-                        ? context.pop()
-                        : context.go(AppRoutes.safety),
-                  ),
+    return LiquidAmbientCanvas(
+      child: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: StaggerScope(
+              builder: (context, animation) => ListView(
+                padding: EdgeInsets.fromLTRB(
+                  12,
+                  0,
+                  20,
+                  MainShell.navClearance(context),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${ref.tr('for_situation')} · ${ref.tr(situation.labelKey).toUpperCase()}',
-                        style: text.labelSmall?.copyWith(
-                          color: AppColors.blue,
-                          letterSpacing: 1.2,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(ref.tr('tips_calm'), style: text.headlineMedium),
-                      const SizedBox(height: 16),
-                      StaggeredEntrance(
-                        animation: animation,
-                        begin: 0.0,
-                        end: 0.5,
-                        child: const UrgentBanner(bodyKey: 'urgent_body2'),
-                      ),
-                      const SizedBox(height: 20),
-                      StaggeredEntrance(
-                        animation: animation,
-                        begin: 0.2,
-                        end: 0.7,
-                        child: _CardShell(child: tip(0)),
-                      ),
-                      const SizedBox(height: 14),
-                      StaggeredEntrance(
-                        animation: animation,
-                        begin: 0.4,
-                        end: 1.0,
-                        child: _CardShell(
-                          child: Column(
-                            children: [
-                              for (var i = 1; i < keys.length; i++) ...[
-                                if (i > 1)
-                                  const Divider(
-                                    height: 24,
-                                    color: AppColors.border,
-                                  ),
-                                tip(i),
-                              ],
-                            ],
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: AppBackButton(
+                      label: ref.tr('your_tips'),
+                      onTap: () => context.canPop()
+                          ? context.pop()
+                          : context.go(AppRoutes.safety),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${ref.tr('for_situation')} · ${ref.tr(situation.labelKey).toUpperCase()}',
+                          style: text.labelSmall?.copyWith(
+                            color: AppColors.blue,
+                            letterSpacing: 1.2,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 6),
+                        Text(ref.tr('tips_calm'), style: text.headlineMedium),
+                        const SizedBox(height: 16),
+                        StaggeredEntrance(
+                          animation: animation,
+                          begin: 0.0,
+                          end: 0.5,
+                          child: const UrgentBanner(bodyKey: 'urgent_body2'),
+                        ),
+                        const SizedBox(height: 20),
+                        StaggeredEntrance(
+                          animation: animation,
+                          begin: 0.2,
+                          end: 0.7,
+                          child: _CardShell(child: tip(0)),
+                        ),
+                        const SizedBox(height: 14),
+                        StaggeredEntrance(
+                          animation: animation,
+                          begin: 0.4,
+                          end: 1.0,
+                          child: _CardShell(
+                            child: Column(
+                              children: [
+                                for (var i = 1; i < keys.length; i++) ...[
+                                  if (i > 1)
+                                    const Divider(
+                                      height: 24,
+                                      color: AppColors.border,
+                                    ),
+                                  tip(i),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -143,21 +146,15 @@ class _CardShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    // Frosted glass card (no per-card blur: these live in a scrolling list).
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 5),
-          ),
-        ],
+      child: LiquidGlassContainer(
+        radius: 22,
+        useBlur: false,
+        padding: const EdgeInsets.all(16),
+        child: child,
       ),
-      child: child,
     );
   }
 }
@@ -180,15 +177,7 @@ class _TipRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final illustration = Container(
-      width: 52,
-      height: 52,
-      decoration: const BoxDecoration(
-        color: AppColors.blueSoft,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(icon, color: AppColors.blue, size: 26),
-    );
+    final illustration = LayeredIconBadge(icon: icon, size: 52);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
