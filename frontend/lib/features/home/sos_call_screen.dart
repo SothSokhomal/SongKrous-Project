@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/animations/staggered_entrance.dart';
 import '../../core/animations/app_animations.dart';
@@ -29,18 +28,6 @@ class SosCallScreen extends ConsumerWidget {
 
   void _call(BuildContext context, String number) =>
       context.push(AppRoutes.calling(_f.nameEn, number));
-
-  Future<void> _sendMessage(WidgetRef ref) async {
-    final loc = ref.read(locationProvider);
-    final body = '${ref.tr('sos_sms_body')} ${loc.shareText}';
-    // Built by hand: Uri.queryParameters would encode spaces as '+'.
-    final uri = Uri.parse('sms:?body=${Uri.encodeComponent(body)}');
-    try {
-      await launchUrl(uri);
-    } catch (_) {
-      /* no SMS app (e.g. simulator) */
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -159,7 +146,7 @@ class SosCallScreen extends ConsumerWidget {
                       icon: Icons.chat_bubble_outline_rounded,
                       label: ref.tr('send_message'),
                       color: AppColors.slate,
-                      onTap: () => _sendMessage(ref),
+                      onTap: () => context.push(AppRoutes.chat, extra: f),
                     ),
                   ),
                 ],

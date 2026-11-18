@@ -8,6 +8,7 @@ abstract final class AppRoutes {
   // Full-screen emergency flow (outside the tab shell)
   static const sosCall = '/sos'; // extra: Facility?
   static const outgoingCall = '/calling'; // ?name=&number=
+  static const chat = '/chat'; // extra: Facility
 
   // Tabs
   static const home = '/home';

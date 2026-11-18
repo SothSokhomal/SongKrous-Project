@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../animations/app_animations.dart';
 import '../constants/facilities.dart';
+import '../constants/phnom_penh_data.dart';
+import '../../features/chat/emergency_chat_screen.dart';
 import '../../features/home/home_sos_screen.dart';
 import '../../features/home/outgoing_call_screen.dart';
 import '../../features/home/sos_call_screen.dart';
@@ -65,6 +67,16 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (_, s) => buildIosPageTransition(
         state: s,
         child: SosCallScreen(facility: s.extra as Facility?),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.chat,
+      parentNavigatorKey: _rootKey,
+      pageBuilder: (_, s) => buildIosPageTransition(
+        state: s,
+        child: EmergencyChatScreen(
+          facility: s.extra as Facility? ?? PhnomPenhData.defaultSos,
+        ),
       ),
     ),
     // Outgoing call rises from the bottom.

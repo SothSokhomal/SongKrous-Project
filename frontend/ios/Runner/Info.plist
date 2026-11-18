@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>SONGKROUS lets you attach a photo of the situation to your emergency message.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>SONGKROUS lets you take a photo of the situation to send to emergency dispatch.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>SONGKROUS uses your location to find the nearest hospital, police and fire services.</string>
 	<key>LSApplicationQueriesSchemes</key>

@@ -683,6 +683,7 @@ class AppScaleButton extends StatelessWidget {
     this.hapticOnDown = false,
     this.semanticLabel,
     this.tooltip,
+    this.tooltipTrigger,
   });
 
   final Widget child;
@@ -693,6 +694,9 @@ class AppScaleButton extends StatelessWidget {
   final bool hapticOnDown;
   final String? semanticLabel;
   final String? tooltip;
+
+  /// e.g. `TooltipTriggerMode.manual` when long-press has another meaning.
+  final TooltipTriggerMode? tooltipTrigger;
 
   @override
   Widget build(BuildContext context) {
@@ -715,7 +719,9 @@ class AppScaleButton extends StatelessWidget {
         ),
       ),
     );
-    if (tooltip != null) w = Tooltip(message: tooltip!, child: w);
+    if (tooltip != null) {
+      w = Tooltip(message: tooltip!, triggerMode: tooltipTrigger, child: w);
+    }
     return w;
   }
 }
