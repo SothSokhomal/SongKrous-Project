@@ -125,7 +125,7 @@ class LocationBubble extends ConsumerWidget {
                     pos.longitude,
                     ref.watch(langProvider),
                   ),
-                  style: TextStyle(fontSize: 12, height: 1.4, color: sub),
+                  style: TextStyle(fontSize: 12, height: 1.5, color: sub),
                 ),
                 const SizedBox(height: 4),
                 Row(

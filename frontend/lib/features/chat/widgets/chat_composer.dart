@@ -217,6 +217,7 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
                 focusNode: node,
                 minLines: 1,
                 maxLines: 4,
+                maxLength: 500,
                 onChanged: (_) => setState(() {}),
                 textInputAction: TextInputAction.newline,
                 style: const TextStyle(
@@ -224,8 +225,11 @@ class _ChatComposerState extends ConsumerState<ChatComposer> {
                   height: 1.45,
                   fontFamilyFallback: ['Noto Sans Khmer'],
                 ),
-                decoration: AppFocusInput.bareDecoration(hintText: hint)
-                    .copyWith(
+                decoration:
+                    AppFocusInput.bareDecoration(
+                      counterText: '',
+                      hintText: hint,
+                    ).copyWith(
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 10,

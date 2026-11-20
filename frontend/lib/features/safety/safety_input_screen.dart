@@ -96,8 +96,10 @@ class _SafetyInputScreenState extends ConsumerState<SafetyInputScreen> {
                     focusNode: node,
                     minLines: 3,
                     maxLines: 5,
+                    maxLength: 300,
                     textInputAction: TextInputAction.newline,
                     decoration: AppFocusInput.bareDecoration(
+                      counterText: '',
                       hintText: ref.tr('feeling_hint'),
                       hintStyle: const TextStyle(
                         color: AppColors.textSecondary,

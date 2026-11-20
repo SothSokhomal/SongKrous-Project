@@ -11,6 +11,8 @@ abstract final class AppRoutes {
   static const outgoingCall = '/calling'; // ?name=&number=
   static const chat = '/chat'; // extra: Facility
 
+  static const settings = '/settings';
+
   // Tabs
   static const home = '/home';
   static const map = '/map';

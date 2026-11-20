@@ -122,7 +122,7 @@ class ChatHeader extends ConsumerWidget {
                             fontSize: 15.5,
                             fontWeight: FontWeight.w700,
                             color: AppColors.ink,
-                            height: 1.35,
+                            height: 1.5,
                             fontFamilyFallback: ['Noto Sans Khmer'],
                           ),
                         ),
@@ -135,7 +135,7 @@ class ChatHeader extends ConsumerWidget {
                           style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.slate,
-                            height: 1.4,
+                            height: 1.5,
                             fontFamilyFallback: ['Noto Sans Khmer'],
                           ),
                         ),

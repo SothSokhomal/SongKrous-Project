@@ -563,7 +563,7 @@ void main() {
       expect(find.text('កែប្រែ'), findsOneWidget);
       expect(find.text('ពីសារ'), findsOneWidget);
       expect(find.text('លេខកូដសង្គ្រោះរបស់អ្នកគឺ ១២៣៤៥៦'), findsOneWidget);
-      expect(find.text('បំពេញស្វ័យប្រវត្តិ'), findsOneWidget);
+      expect(find.text('បំពេញ'), findsOneWidget);
       expect(
         find.text('មិនទទួលបានលេខកូដ? ផ្ញើម្តងទៀតក្នុង ០០:២៨'),
         findsOneWidget,

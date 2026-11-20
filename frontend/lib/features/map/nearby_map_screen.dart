@@ -120,6 +120,7 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
   void initState() {
     super.initState();
     _cam.addListener(_onCamTick);
+    _sheetController.addListener(_onSheetController);
     _reveal.addStatusListener(_onRevealStatus);
 
     final initial = ref.read(selectedMapTargetProvider);
@@ -138,6 +139,7 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
   @override
   void dispose() {
     _cam.removeListener(_onCamTick);
+    _sheetController.removeListener(_onSheetController);
     _reveal.removeStatusListener(_onRevealStatus);
     _revealCurve.dispose();
     _camCurve.dispose();
@@ -164,20 +166,32 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
   // ── Sheet control ─────────────────────────────────────────────────────
 
   bool _onSheetNotification(DraggableScrollableNotification n) {
+    _applyExtent(n.extent);
+    return false;
+  }
+
+  /// The controller is the source of truth: if a notification is missed or
+  /// reordered (e.g. while rows re-measure), the collapsed/extent state still
+  /// catches up on the next controller change.
+  void _onSheetController() {
+    if (_sheetController.isAttached) _applyExtent(_sheetController.size);
+  }
+
+  void _applyExtent(double extent) {
     void apply() {
       if (!mounted) return;
-      _sheetExtent.value = n.extent;
-      _collapsed.value = n.extent <= _minSize + 0.05;
+      final collapsed = extent <= _minSize + 0.05;
+      if (_sheetExtent.value != extent) _sheetExtent.value = extent;
+      if (_collapsed.value != collapsed) _collapsed.value = collapsed;
     }
 
-    // Notifications can fire while the framework is laying out; defer then.
+    // Can fire while the framework is laying out; defer then.
     if (SchedulerBinding.instance.schedulerPhase ==
         SchedulerPhase.persistentCallbacks) {
       SchedulerBinding.instance.addPostFrameCallback((_) => apply());
     } else {
       apply();
     }
-    return false;
   }
 
   /// Slides the sheet from its peek position to half-open (0.45).
@@ -399,7 +413,7 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
   Future<void> _pickKhan() async {
     final loc = ref.read(locationProvider);
     final k = await showKhanPicker(context, selected: _khan ?? loc.khan);
-    if (k == null) return;
+    if (k == null || !mounted) return;
     setState(() => _khan = k);
     _animateTo(k.center, PhnomPenh.zoom);
   }
@@ -783,9 +797,11 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
           builder: (context, node) => TextField(
             controller: _search,
             focusNode: node,
+            maxLength: 60,
             onChanged: (_) => setState(() {}),
             textInputAction: TextInputAction.search,
             decoration: AppFocusInput.bareDecoration(
+              counterText: '',
               hintText: ref.tr('search_hint'),
               hintMaxLines: 1,
               prefixIcon: const Icon(Icons.search_rounded),

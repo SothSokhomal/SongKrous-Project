@@ -281,7 +281,7 @@ class _EnterNumberScreenState extends ConsumerState<EnterNumberScreen>
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: AppColors.red,
-                          height: 1.4,
+                          height: 1.5,
                           fontFamilyFallback: ['Noto Sans Khmer'],
                         ),
                       ),

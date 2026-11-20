@@ -214,22 +214,6 @@ class AppButtonColors {
     border: accent,
   );
 
-  /// White pill on a dark-blue surface (e.g. "Copy Location").
-  static const onDarkSolid = AppButtonColors(
-    bg: AppColors.white,
-    hover: Color(0xFFF1F5FF),
-    pressed: Color(0xFFDCE6FF),
-    fg: AppColors.blueDeep,
-  );
-
-  /// Translucent pill on a dark-blue surface (e.g. "View Map").
-  static final onDarkGlass = AppButtonColors(
-    bg: Colors.white.withValues(alpha: 0.16),
-    hover: Colors.white.withValues(alpha: 0.26),
-    pressed: Colors.white.withValues(alpha: 0.34),
-    fg: AppColors.white,
-  );
-
   // ── Liquid Glass variants ─────────────────────────────────────────
 
   /// Glossy red glass — primary emergency call.

@@ -154,7 +154,7 @@ class NavBanner extends ConsumerWidget {
                       color: AppColors.white,
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
-                      height: 1.3,
+                      height: 1.5,
                       fontFamilyFallback: ['Noto Sans Khmer'],
                     ),
                   ),

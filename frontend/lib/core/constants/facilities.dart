@@ -13,12 +13,6 @@ abstract final class EmergencyNumbers {
   static const String police = '117';
   static const String fire = '118';
   static const String ambulance = '119';
-
-  static String forType(FacilityType t) => switch (t) {
-    FacilityType.hospital => ambulance,
-    FacilityType.police => police,
-    FacilityType.fire => fire,
-  };
 }
 
 class Facility {
@@ -83,6 +77,3 @@ class Facility {
     return street != null ? '$street, $khanName' : khanName;
   }
 }
-
-/// Strips spaces so a display number can be passed to `tel:`.
-String dialable(String number) => number.replaceAll(RegExp(r'[^0-9+]'), '');

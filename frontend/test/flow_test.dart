@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:songkrous/core/constants/app_state.dart';
+import 'package:songkrous/core/constants/facilities.dart';
 import 'package:songkrous/core/constants/app_strings.dart';
 import 'package:songkrous/core/router/app_router.dart';
 import 'package:songkrous/core/router/app_routes.dart';
@@ -192,8 +193,10 @@ void main() {
 
     await tester.tap(find.text('Koh Pich Fire Station').last);
     await frames(tester, 12);
-    expect(c.read(selectedMapTargetProvider), isNotNull);
-    expect(find.text('Nearby Fire Stations'), findsOneWidget);
+    // State B for the fire category. (The sheet header isn't asserted: the
+    // sheet scrolls the routed row into view, which may move it out of the
+    // build range — layout, not behaviour.)
+    expect(c.read(selectedMapTargetProvider), FacilityType.fire);
     expect(find.text('13 min • 4.5 km'), findsOneWidget);
     // The routed (3rd, farthest) row is scrolled into view, not clipped away.
     expect(find.text('4.5 km · 13 min').hitTestable(), findsOneWidget);

@@ -62,8 +62,10 @@ class _HotlinesScreenState extends ConsumerState<HotlinesScreen> {
                   glassBlur: false,
                   builder: (context, node) => TextField(
                     focusNode: node,
+                    maxLength: 40,
                     onChanged: (v) => setState(() => _query = v),
                     decoration: AppFocusInput.bareDecoration(
+                      counterText: '',
                       hintText: ref.tr('search_khan'),
                       prefixIcon: const Icon(Icons.search_rounded),
                     ),

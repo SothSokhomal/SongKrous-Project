@@ -16,6 +16,7 @@ import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/onboarding/otp_verification_screen.dart';
 import '../../features/onboarding/splash_screen.dart';
 import '../../features/safety/safety_input_screen.dart';
+import '../../features/settings/settings_screen.dart';
 import '../../features/safety/safety_tips_screen.dart';
 import '../../features/safety/situation.dart';
 import '../../shared/widgets/main_shell.dart';
@@ -76,6 +77,12 @@ final GoRouter appRouter = GoRouter(
         state: s,
         child: SosCallScreen(facility: s.extra as Facility?),
       ),
+    ),
+    GoRoute(
+      path: AppRoutes.settings,
+      parentNavigatorKey: _rootKey,
+      pageBuilder: (_, s) =>
+          buildIosPageTransition(state: s, child: const SettingsScreen()),
     ),
     GoRoute(
       path: AppRoutes.chat,

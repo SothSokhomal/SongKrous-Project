@@ -98,6 +98,7 @@ class LocationNotifier extends Notifier<UserLocation> {
       final granted =
           perm == LocationPermission.whileInUse ||
           perm == LocationPermission.always;
+      if (!ref.mounted) return granted;
       state = state.copyWith(gpsActive: granted);
       if (granted) unawaited(_refreshPosition());
       return granted;
@@ -116,12 +117,23 @@ class LocationNotifier extends Notifier<UserLocation> {
       );
       // The app serves Phnom Penh; ignore fixes outside the service area
       // (e.g. a simulator parked elsewhere) and keep the fallback point.
-      if (PhnomPenh.contains(pos.latitude, pos.longitude)) {
+      if (ref.mounted && PhnomPenh.contains(pos.latitude, pos.longitude)) {
         state = state.copyWith(latLng: LatLng(pos.latitude, pos.longitude));
       }
     } catch (_) {
       // Keep the last known / fallback location.
     }
+  }
+
+  /// Settings switch. ON asks for permission (and may fail → stays off); OFF
+  /// drops to manual Khan selection immediately. Home and Map watch
+  /// [locationProvider], so they update live. Returns the resulting state.
+  Future<bool> setEnabled(bool enabled) async {
+    if (!enabled) {
+      state = state.copyWith(gpsActive: false);
+      return false;
+    }
+    return requestPermission();
   }
 
   /// Manual fallback when GPS is denied.
@@ -135,4 +147,9 @@ class LocationNotifier extends Notifier<UserLocation> {
 
 final locationProvider = NotifierProvider<LocationNotifier, UserLocation>(
   LocationNotifier.new,
+);
+
+/// Whether live device location is on (the Settings switch).
+final locationEnabledProvider = Provider<bool>(
+  (ref) => ref.watch(locationProvider.select((l) => l.gpsActive)),
 );

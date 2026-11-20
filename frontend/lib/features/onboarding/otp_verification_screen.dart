@@ -13,6 +13,7 @@ import '../../core/state/auth_state.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/phone_format.dart';
 import '../../shared/widgets/app_interactive.dart';
+import '../../shared/widgets/glass_back_button.dart';
 import '../../shared/widgets/language_toggle.dart';
 import '../../shared/widgets/liquid_glass.dart';
 import 'widgets/otp_pin_input.dart';
@@ -338,33 +339,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: Row(
         children: [
-          Semantics(
-            button: true,
-            label: ref.tr('back'),
-            child: AppPressable(
-              key: const ValueKey('otp-back'),
-              onTap: _back,
-              haptic: AppHaptic.selection,
-              builder: (context, hovered, pressed) => AnimatedScale(
-                duration: const Duration(milliseconds: 120),
-                scale: pressed ? 0.92 : 1,
-                child: LiquidGlassContainer(
-                  width: 40,
-                  height: 40,
-                  radius: 20,
-                  useBlur: false,
-                  hovered: hovered,
-                  pressed: pressed,
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.chevron_left_rounded,
-                    size: 26,
-                    color: AppColors.blueDeep,
-                  ),
-                ),
-              ),
-            ),
-          ),
+          GlassBackButton(key: const ValueKey('otp-back'), onTap: _back),
           const Spacer(),
           const LanguageCompactToggle(),
         ],
@@ -412,7 +387,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
             fontSize: 24,
             fontWeight: FontWeight.w800,
             color: AppColors.ink,
-            height: 1.25,
+            height: 1.5,
             fontFamilyFallback: ['Noto Sans Khmer'],
           ),
         ),
@@ -521,7 +496,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
                     color: AppColors.red,
-                    height: 1.4,
+                    height: 1.5,
                     fontFamilyFallback: ['Noto Sans Khmer'],
                   ),
                 ),
@@ -557,7 +532,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
                 style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.slate,
-                  height: 1.4,
+                  height: 1.5,
                   fontFeatures: [FontFeature.tabularFigures()],
                   fontFamilyFallback: ['Noto Sans Khmer'],
                 ),
@@ -737,7 +712,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
                               style: const TextStyle(
                                 fontSize: 13,
                                 color: Color(0xFF475569),
-                                height: 1.3,
+                                height: 1.5,
                                 fontFamilyFallback: ['Noto Sans Khmer'],
                               ),
                             ),
@@ -745,22 +720,26 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen>
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.blueDeep,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Text(
-                          ref.tr('otp_autofill'),
-                          style: const TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.white,
-                            fontFamilyFallback: ['Noto Sans Khmer'],
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.blueDeep,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Text(
+                            ref.tr('otp_autofill'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.white,
+                              fontFamilyFallback: ['Noto Sans Khmer'],
+                            ),
                           ),
                         ),
                       ),

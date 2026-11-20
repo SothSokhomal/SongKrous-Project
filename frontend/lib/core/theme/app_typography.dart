@@ -13,7 +13,7 @@ abstract final class AppTypography {
     fontWeight: weight,
     color: AppColors.textPrimary,
     // Khmer glyphs need more vertical room than Latin.
-    height: 1.4,
+    height: 1.5,
   ).copyWith(fontFamilyFallback: _khmerFallback);
 
   static TextTheme textTheme() => TextTheme(

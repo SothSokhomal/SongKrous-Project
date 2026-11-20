@@ -325,7 +325,7 @@ class _RimPainter extends CustomPainter {
     // Inner top sheen: a 1 px highlight just inside the rim.
     final inset = radius.topLeft.x * 0.55 + 2;
     if (size.width > inset * 2) {
-      final y = 1.8;
+      const y = 1.8;
       canvas.drawLine(
         Offset(inset, y),
         Offset(size.width - inset, y),

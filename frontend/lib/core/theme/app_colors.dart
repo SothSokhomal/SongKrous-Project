@@ -8,7 +8,6 @@ abstract final class AppColors {
   static const Color redSoft = Color(0xFFFEE2E2);
   static const Color blue = Color(0xFF1D4ED8); // interactive / active
   static const Color blueDeep = Color(0xFF0F3D91); // headers, primary CTA
-  static const Color blueDark = Color(0xFF0B2A6B);
   static const Color blueSoft = Color(0xFFE6EDFD);
   static const Color white = Color(0xFFFFFFFF);
 
@@ -32,7 +31,6 @@ abstract final class AppColors {
   static const Color police = blue;
   static const Color fire = red;
   static const Color gold = Color(0xFFF5B301);
-  static const Color flame = Color(0xFFFFC107);
 
   static const Color success = Color(0xFF16A34A);
 }

@@ -89,7 +89,8 @@ class HomeSosScreen extends ConsumerWidget {
                       context,
                       selected: loc.khan,
                     );
-                    if (khan != null) {
+                    // The screen (and its ref) may be gone after the dialog.
+                    if (khan != null && context.mounted) {
                       ref.read(locationProvider.notifier).setKhan(khan);
                     }
                   }
@@ -147,12 +148,6 @@ class _TopBar extends ConsumerWidget {
     final color = gpsActive ? AppColors.blueDeep : AppColors.red;
     return Row(
       children: [
-        const Icon(
-          Icons.health_and_safety_rounded,
-          color: AppColors.blueDeep,
-          size: 28,
-        ),
-        const SizedBox(width: 8),
         Expanded(
           child: Text(
             ref.tr('app_name'),
@@ -165,7 +160,7 @@ class _TopBar extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         // GPS status: frosted glass pill with a live green beacon.
         Flexible(
           child: Semantics(
@@ -200,7 +195,7 @@ class _TopBar extends ConsumerWidget {
                             shape: BoxShape.circle,
                           ),
                         ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Flexible(
                         child: Text(
                           ref.tr(gpsActive ? 'gps_active' : 'gps_off'),
@@ -221,8 +216,37 @@ class _TopBar extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         const LanguageCompactToggle(),
+        const SizedBox(width: 6),
+        // Settings: account, language, privacy, log out.
+        Semantics(
+          button: true,
+          label: ref.tr('settings'),
+          child: AppPressable(
+            key: const ValueKey('home-settings'),
+            onTap: () => context.push(AppRoutes.settings),
+            haptic: AppHaptic.selection,
+            builder: (context, hovered, pressed) => AnimatedScale(
+              duration: const Duration(milliseconds: 120),
+              scale: pressed ? 0.92 : 1,
+              child: LiquidGlassContainer(
+                width: 36,
+                height: 36,
+                radius: 18,
+                useBlur: false,
+                hovered: hovered,
+                pressed: pressed,
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.settings_rounded,
+                  size: 20,
+                  color: AppColors.blueDeep,
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -283,7 +307,7 @@ class _LocationHero extends ConsumerWidget {
             style: text.titleLarge?.copyWith(
               color: AppColors.white,
               fontSize: 21,
-              height: 1.4,
+              height: 1.5,
             ),
           ),
           const SizedBox(height: 2),
@@ -533,7 +557,7 @@ class _CategoryCard extends ConsumerWidget {
                     fontSize: 16.5,
                     fontWeight: FontWeight.w800,
                     color: AppColors.ink,
-                    height: 1.4,
+                    height: 1.5,
                     fontFamilyFallback: ['Noto Sans Khmer'],
                   ),
                 ),

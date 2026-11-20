@@ -8,6 +8,7 @@ import 'package:songkrous/core/constants/khans.dart';
 import 'package:songkrous/core/constants/phnom_penh_data.dart';
 import 'package:songkrous/core/router/app_router.dart';
 import 'package:songkrous/core/router/app_routes.dart';
+import 'package:songkrous/core/utils/safe_launch.dart';
 import 'package:songkrous/main.dart';
 import 'package:songkrous/shared/widgets/songkrous_logo.dart';
 
@@ -44,8 +45,18 @@ void main() {
     );
   });
 
-  test('dialable strips formatting', () {
-    expect(dialable('+855 23 426 948'), '+85523426948');
+  test('sanitizePhone keeps only digits and a leading +', () {
+    expect(sanitizePhone('+855 23 426 948'), '+85523426948');
+    expect(sanitizePhone('(117)'), '117');
+    expect(sanitizePhone('tel:117;rm -rf'), '117');
+    expect(sanitizePhone('+85+5 23 426 948'), '+85523426948');
+    expect(sanitizePhone('85+523426948'), '85523426948');
+    expect(sanitizePhone(''), isNull);
+    expect(sanitizePhone(null), isNull);
+    expect(sanitizePhone('12'), isNull); // too short
+    expect(sanitizePhone('1' * 17), isNull); // too long
+    expect(sanitizePhone('abc'), isNull);
+    expect(sanitizePhone('1' * 80), isNull);
   });
 
   testWidgets(

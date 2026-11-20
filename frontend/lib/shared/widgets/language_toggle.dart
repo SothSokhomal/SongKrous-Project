@@ -24,6 +24,8 @@ class LanguagePill extends ConsumerWidget {
     return LiquidGlassContainer(
       radius: 24,
       tint: LiquidTint.frostStrong,
+      // Sits on a solid header/canvas: a backdrop blur would add nothing.
+      useBlur: false,
       padding: const EdgeInsets.all(4),
       child: SizedBox(
         width: _segment * 2,

@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/facilities.dart';
+import '../../../core/state/auth_state.dart';
 import '../../../core/state/location_state.dart';
 import '../models/chat_message.dart';
 
@@ -144,8 +145,16 @@ class ChatNotifier extends Notifier<ChatState> {
   final Facility facility;
   int _seq = 0;
 
+  /// Bumped on every (re)build. In-flight deliveries from a previous thread
+  /// (e.g. before a log out) compare against it and drop their events instead
+  /// of leaking into the fresh conversation.
+  int _epoch = 0;
+
   @override
   ChatState build() {
+    _epoch++;
+    // Chat history is session data: logging in/out starts a clean thread.
+    ref.watch(authProfileProvider.select((p) => p.isLoggedIn));
     final loc = ref.read(locationProvider);
     final now = DateTime.now();
     return ChatState(
@@ -259,9 +268,10 @@ class ChatNotifier extends Notifier<ChatState> {
   }
 
   Future<void> _follow(ChatMessage message) async {
+    final epoch = _epoch;
     await for (final event
         in ref.read(dispatchTransportProvider).deliver(message, _context)) {
-      if (!ref.mounted) return;
+      if (!ref.mounted || epoch != _epoch) return;
       switch (event) {
         case StatusChanged(:final status):
           state = state.copyWith(

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
+
+import '../../core/utils/safe_launch.dart';
 
 import '../../core/animations/looping_animation.dart';
 import '../../core/animations/app_animations.dart';
 import '../../core/constants/app_state.dart';
-import '../../core/constants/facilities.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/state/location_state.dart';
 import '../../core/theme/app_colors.dart';
@@ -53,11 +53,17 @@ class _OutgoingCallScreenState extends ConsumerState<OutgoingCallScreen> {
   }
 
   Future<void> _dial() async {
-    try {
-      await launchUrl(Uri(scheme: 'tel', path: dialable(widget.number)));
-    } catch (_) {
-      // Simulator / device without telephony: stay on this screen.
-    }
+    final ok = await ref.read(phoneLauncherProvider)(widget.number);
+    // Simulator / no telephony / malformed number: stay here and say so.
+    if (ok || !mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text(ref.tr('call_failed')),
+        ),
+      );
   }
 
   void _hangUp() =>
@@ -104,6 +110,8 @@ class _OutgoingCallScreenState extends ConsumerState<OutgoingCallScreen> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    // Short phones (iPhone SE class): tighter vertical rhythm, no overflow.
+    final compact = MediaQuery.sizeOf(context).height < 640;
     final title = widget.name.isEmpty ? widget.number : widget.name;
 
     return Scaffold(
@@ -117,7 +125,7 @@ class _OutgoingCallScreenState extends ConsumerState<OutgoingCallScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Column(
                   children: [
-                    const SizedBox(height: 48),
+                    SizedBox(height: compact ? 20 : 48),
                     Text(
                       title,
                       textAlign: TextAlign.center,
@@ -131,14 +139,18 @@ class _OutgoingCallScreenState extends ConsumerState<OutgoingCallScreen> {
                       label: ref.tr('calling'),
                       style: text.bodyLarge?.copyWith(color: Colors.white60),
                     ),
-                    const SizedBox(height: 40),
-                    GridView.count(
-                      crossAxisCount: 3,
+                    SizedBox(height: compact ? 20 : 40),
+                    GridView(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 20,
-                      crossAxisSpacing: 20,
-                      childAspectRatio: 0.9,
+                      // Fixed row height (68 icon + label) so narrow phones and
+                      // big text never overflow a cell.
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: compact ? 12 : 20,
+                        crossAxisSpacing: 20,
+                        mainAxisExtent: 100,
+                      ),
                       children: [
                         for (var i = 0; i < _controls.length; i++)
                           _CallControl(
@@ -165,7 +177,7 @@ class _OutgoingCallScreenState extends ConsumerState<OutgoingCallScreen> {
                       haptic: AppHaptic.light,
                       onPressed: _readLocation,
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: compact ? 12 : 20),
                     // Heavy haptic + press sink; hover grows it slightly.
                     AppScaleButton(
                       semanticLabel: ref.tr('end_call'),
@@ -189,7 +201,7 @@ class _OutgoingCallScreenState extends ConsumerState<OutgoingCallScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    SizedBox(height: compact ? 16 : 28),
                   ],
                 ),
               ),
