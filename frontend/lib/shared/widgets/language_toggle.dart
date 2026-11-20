@@ -8,12 +8,13 @@ import '../../core/theme/app_colors.dart';
 import 'app_interactive.dart';
 import 'liquid_glass.dart';
 
-/// White pill `ភាសាខ្មែរ | English` with a sliding active background (220 ms),
-/// a soft hover tint on the inactive language and a selection haptic.
+/// Language pill `🇰🇭 | 🇬🇧`: country flags instead of words, with a sliding
+/// active background (220 ms), a soft hover tint on the inactive flag and a
+/// selection haptic.
 class LanguagePill extends ConsumerWidget {
   const LanguagePill({super.key});
 
-  static const double _segment = 88;
+  static const double _segment = 56;
   static const double _height = 38;
 
   @override
@@ -49,11 +50,15 @@ class LanguagePill extends ConsumerWidget {
             Row(
               children: [
                 _Segment(
+                  key: const ValueKey('pill-km'),
+                  flag: kFlagKh,
                   label: 'ភាសាខ្មែរ',
                   selected: km,
                   onTap: () => ref.read(langProvider.notifier).set(AppLang.km),
                 ),
                 _Segment(
+                  key: const ValueKey('pill-en'),
+                  flag: kFlagEn,
                   label: 'English',
                   selected: !km,
                   onTap: () => ref.read(langProvider.notifier).set(AppLang.en),
@@ -67,13 +72,23 @@ class LanguagePill extends ConsumerWidget {
   }
 }
 
+/// Flag emoji for each language (Cambodia / United Kingdom).
+const String kFlagKh = '🇰🇭';
+const String kFlagEn = '🇬🇧';
+
 class _Segment extends StatelessWidget {
   const _Segment({
+    super.key,
+    required this.flag,
     required this.label,
     required this.selected,
     required this.onTap,
   });
 
+  /// Shown on screen.
+  final String flag;
+
+  /// The language's own name — read out by screen readers, never drawn.
   final String label;
   final bool selected;
   final VoidCallback onTap;
@@ -86,6 +101,7 @@ class _Segment extends StatelessWidget {
       child: Semantics(
         button: true,
         selected: selected,
+        label: label,
         child: AppPressable(
           // Already-selected segment is inert (basic cursor, no haptic).
           onTap: selected ? null : onTap,
@@ -99,15 +115,13 @@ class _Segment extends StatelessWidget {
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: AnimatedDefaultTextStyle(
+            child: AnimatedOpacity(
               duration: const Duration(milliseconds: 220),
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: selected ? AppColors.white : AppColors.blueDeep,
-                fontFamilyFallback: const ['Noto Sans Khmer'],
+              opacity: selected ? 1 : 0.7,
+              child: Text(
+                flag,
+                style: const TextStyle(fontSize: 22, height: 1.2),
               ),
-              child: Text(label),
             ),
           ),
         ),
@@ -116,43 +130,88 @@ class _Segment extends StatelessWidget {
   }
 }
 
-/// Compact `ខ្មែរ / EN` pill for app bars — tap to switch language. Hover
-/// highlights it; press scales it to 0.95.
+/// Compact `🇰🇭 🇬🇧` switch for app bars — tap a flag to pick that language.
+/// The active flag sits on a deep-blue chip; hover/press give feedback.
 class LanguageCompactToggle extends ConsumerWidget {
   const LanguageCompactToggle({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lang = ref.watch(langProvider);
-    TextStyle s(bool active) => TextStyle(
-      fontSize: 12,
-      fontWeight: active ? FontWeight.w800 : FontWeight.w500,
-      color: active ? AppColors.blueDeep : AppColors.slate,
-      fontFamilyFallback: const ['Noto Sans Khmer'],
+    return LiquidGlassContainer(
+      radius: 18,
+      useBlur: false,
+      padding: const EdgeInsets.all(3),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _FlagChip(
+            key: const ValueKey('compact-km'),
+            flag: kFlagKh,
+            label: 'ភាសាខ្មែរ',
+            selected: lang == AppLang.km,
+            onTap: () => ref.read(langProvider.notifier).set(AppLang.km),
+          ),
+          const SizedBox(width: 2),
+          _FlagChip(
+            key: const ValueKey('compact-en'),
+            flag: kFlagEn,
+            label: 'English',
+            selected: lang == AppLang.en,
+            onTap: () => ref.read(langProvider.notifier).set(AppLang.en),
+          ),
+        ],
+      ),
     );
+  }
+}
+
+class _FlagChip extends StatelessWidget {
+  const _FlagChip({
+    super.key,
+    required this.flag,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String flag;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: ref.tr('switch_language'),
+      selected: selected,
+      label: label,
       child: AppPressable(
-        onTap: () => ref.read(langProvider.notifier).toggle(),
+        onTap: selected ? null : onTap,
         haptic: AppHaptic.selection,
         builder: (context, hovered, pressed) => AnimatedScale(
           duration: const Duration(milliseconds: 120),
           curve: AppCurves.out,
-          scale: pressed ? 0.95 : 1.0,
-          child: LiquidGlassContainer(
-            radius: 16,
-            useBlur: false,
-            hovered: hovered,
-            pressed: pressed,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            child: Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(text: 'ខ្មែរ', style: s(lang == AppLang.km)),
-                  TextSpan(text: ' / ', style: s(false)),
-                  TextSpan(text: 'EN', style: s(lang == AppLang.en)),
-                ],
+          scale: pressed ? 0.92 : 1.0,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: AppCurves.out,
+            width: 36,
+            height: 30,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected
+                  ? AppColors.blueDeep
+                  : hovered
+                  ? AppColors.blueDeep.withValues(alpha: 0.10)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Opacity(
+              opacity: selected ? 1 : 0.7,
+              child: Text(
+                flag,
+                style: const TextStyle(fontSize: 18, height: 1.2),
               ),
             ),
           ),

@@ -70,7 +70,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 900)); // entrance done
 
       // Splash has the language pill and a 210 px logo.
-      expect(find.text('ភាសាខ្មែរ'), findsOneWidget);
+      expect(find.byKey(const ValueKey('pill-km')), findsOneWidget);
       final splashLogo = tester.getSize(find.byType(SongkrousLogo));
       expect(splashLogo.width, 210);
 
@@ -87,7 +87,7 @@ void main() {
       // Logo glided down to the onboarding size.
       expect(tester.getSize(find.byType(SongkrousLogo)).width, 120);
       // Language pill is still there (anchored).
-      expect(find.text('ភាសាខ្មែរ'), findsOneWidget);
+      expect(find.byKey(const ValueKey('pill-km')), findsOneWidget);
 
       await tapAndSettle(find.text('បន្ត'));
       expect(find.textContaining('+855'), findsNothing); // no Latin digits
@@ -113,7 +113,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 900));
     expect(find.text('Next'), findsNothing);
 
-    await tester.tap(find.text('English'));
+    await tester.tap(find.byKey(const ValueKey('pill-en')));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Next'), findsOneWidget);
   });

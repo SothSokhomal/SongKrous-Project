@@ -130,7 +130,7 @@ void main() {
 
   testWidgets('language pill switches the whole screen', (tester) async {
     final c = await boot(tester, AppRoutes.settings);
-    await tester.tap(find.text('ភាសាខ្មែរ'));
+    await tester.tap(find.byKey(const ValueKey('pill-km')));
     await ms(tester, 400);
     expect(c.read(langProvider), AppLang.km);
     expect(find.text('ការកំណត់'), findsWidgets);
@@ -154,7 +154,7 @@ void main() {
           w.data ?? w.textSpan!.toPlainText(),
     ];
     // Only the language selector's own names may stay in Latin script.
-    expect(bad.where((t) => t != 'English'), isEmpty);
+    expect(bad, isEmpty); // not even the language switch uses Latin now
   });
 
   group('profile photo', () {

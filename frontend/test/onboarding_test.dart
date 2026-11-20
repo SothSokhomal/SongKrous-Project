@@ -69,13 +69,13 @@ void main() {
     await boot(tester, lang: AppLang.km);
     expect(find.text('Continue'), findsNothing);
 
-    await tester.tap(find.text('English'));
+    await tester.tap(find.byKey(const ValueKey('pill-en')));
     await frames(tester, 4);
     expect(find.text('Emergency help, simplified'), findsOneWidget);
     expect(find.text('Continue'), findsOneWidget);
     expect(find.text('បន្ត'), findsNothing);
 
-    await tester.tap(find.text('ភាសាខ្មែរ'));
+    await tester.tap(find.byKey(const ValueKey('pill-km')));
     await frames(tester, 4);
     expect(find.text('ជំនួយដោយចុចតែម្តង'), findsOneWidget);
     expect(find.text('Continue'), findsNothing);

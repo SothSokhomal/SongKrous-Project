@@ -163,7 +163,6 @@ abstract final class AppStrings {
     'play_voice': _k('Play voice message', 'ចាក់សារសំឡេង'),
     'end_call': _k('End call', 'បញ្ចប់ការហៅ'),
     'toggle_list': _k('Toggle list', 'បើក/បិទបញ្ជី'),
-    'switch_language': _k('Switch language', 'ប្តូរភាសា'),
     // ── Delivery channel + OTP verification ──
     'sending_code': _k('Sending code...', 'កំពុងផ្ញើលេខកូដ...'),
     'phone_invalid': _k(

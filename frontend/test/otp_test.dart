@@ -576,7 +576,7 @@ void main() {
             w.data ?? w.textSpan!.toPlainText(),
       ];
       // Only the language selector's endonym may stay Latin.
-      expect(bad.where((t) => !t.contains('EN') && t != 'English'), isEmpty);
+      expect(bad, isEmpty);
 
       await enter(tester, '123');
       expect(find.text('១'), findsOneWidget);
@@ -643,7 +643,7 @@ void khmerEnterNumberScan() {
         if (latin.hasMatch(w.data ?? w.textSpan?.toPlainText() ?? ''))
           w.data ?? w.textSpan!.toPlainText(),
     ];
-    expect(bad.where((t) => !t.contains('EN') && t != 'English'), isEmpty);
+    expect(bad, isEmpty);
     await ms(tester, 800);
   });
 }

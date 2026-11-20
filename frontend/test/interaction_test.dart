@@ -375,7 +375,7 @@ void main() {
               as Alignment;
 
       expect(indicator(), Alignment.centerRight); // English selected
-      await tester.tap(find.text('ភាសាខ្មែរ'));
+      await tester.tap(find.byKey(const ValueKey('pill-km')));
       await frames(tester, 3);
       expect(haptics, ['selectionClick']);
       expect(indicator(), Alignment.centerLeft);
