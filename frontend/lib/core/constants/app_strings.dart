@@ -128,11 +128,9 @@ abstract final class AppStrings {
     'unit_min': _k('min', 'នាទី'),
     'unit_m': _k('m', 'ម៉ែត្រ'),
     'swipe_up': _k('Swipe up', 'អូសឡើងលើ'),
-    'cat_medical': _k('Medical', 'ពេទ្យសង្គ្រោះបន្ទាន់'),
-    'cat_police': _k('Police', 'ប៉ូលិសសង្គ្រោះ'),
-    'cat_fire': _k('Fire & Rescue', 'អគ្គិភ័យ'),
-    'pill_direct': _k('DIRECT {phone}', 'ផ្ទាល់ {phone}'),
-    'pill_hotline': _k('HOTLINE {phone}', 'ខ្សែបន្ទាន់ {phone}'),
+    'cat_medical': _k('Medical', 'ពេទ្យសង្គ្រោះ'),
+    'cat_police': _k('Police', 'ប៉ូលិស'),
+    'cat_fire': _k('Fire', 'ពន្លត់អគ្គិភ័យ'),
 
     // ── Emergency chat ───────────────────────────────────────────────
     'chat_connected': _k('Connected • {phone}', 'បានភ្ជាប់ • {phone}'),

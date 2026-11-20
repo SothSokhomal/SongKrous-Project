@@ -539,6 +539,7 @@ class AppInteractiveCard extends StatelessWidget {
     this.semanticLabel,
     this.glass,
     this.glassBlur = false,
+    this.gradient,
   }) : assert(child != null || builder != null);
 
   final Widget? child;
@@ -572,6 +573,10 @@ class AppInteractiveCard extends StatelessWidget {
   /// `BackdropFilter` blur for glass cards. Off by default: cards usually sit
   /// in scrolling lists.
   final bool glassBlur;
+
+  /// Tinted surface gradient for a flat (non-[glass]) card; replaces the
+  /// solid fill.
+  final Gradient? gradient;
 
   static const _dur = Duration(milliseconds: 160);
 
@@ -672,7 +677,8 @@ class AppInteractiveCard extends StatelessWidget {
               padding: padding,
               clipBehavior: clip,
               decoration: BoxDecoration(
-                color: fill,
+                color: gradient == null ? fill : null,
+                gradient: gradient,
                 borderRadius: BorderRadius.circular(radius),
                 border: borderColor == null
                     ? null

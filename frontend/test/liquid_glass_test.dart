@@ -10,6 +10,7 @@ import 'package:songkrous/core/router/app_router.dart';
 import 'package:songkrous/core/router/app_routes.dart';
 import 'package:songkrous/core/theme/app_colors.dart';
 import 'package:songkrous/main.dart';
+import 'package:songkrous/shared/widgets/app_interactive.dart';
 import 'package:songkrous/shared/widgets/emergency_emblem.dart';
 import 'package:songkrous/shared/widgets/floating_bottom_nav.dart';
 import 'package:songkrous/shared/widgets/liquid_glass.dart';
@@ -157,40 +158,85 @@ void main() {
   });
 
   group('Home', () {
-    testWidgets(
-      'three detailed emergency cards with live nearest-facility data',
-      (tester) async {
-        await boot(tester, AppRoutes.home);
+    testWidgets('three clean emergency cards: one bold title, nothing else', (
+      tester,
+    ) async {
+      await boot(tester, AppRoutes.home);
 
-        // Titles (EN / KH), live subtitle (name • km · min) and glass pills.
-        expect(find.text('Medical'), findsOneWidget);
-        expect(find.text('Calmette Hospital • 1.2 km · 4 min'), findsOneWidget);
-        expect(find.text('24/7 ER'), findsOneWidget);
+      expect(find.text('Medical'), findsOneWidget);
+      expect(find.text('Police'), findsOneWidget);
+      expect(find.text('Fire'), findsOneWidget);
+      expect(find.byType(EmergencyEmblem), findsNWidgets(3));
 
-        expect(find.text('Police'), findsOneWidget);
-        expect(find.text('Phnom Penh Police • 0.4 km · 2 min'), findsOneWidget);
-        expect(find.text('DIRECT 012 855 706'), findsOneWidget);
+      // Every card holds exactly ONE piece of text — its title: no subtitle,
+      // distance, facility name or badge.
+      final cards = find.byType(AppInteractiveCard);
+      expect(cards, findsNWidgets(3));
+      for (final title in ['Medical', 'Police', 'Fire']) {
+        final card = find.ancestor(
+          of: find.text(title),
+          matching: find.byType(AppInteractiveCard),
+        );
+        final texts = tester
+            .widgetList<Text>(
+              find.descendant(of: card, matching: find.byType(Text)),
+            )
+            .map((t) => t.data)
+            .toList();
+        expect(texts, [title], reason: title);
+      }
+      for (final gone in [
+        'Calmette',
+        'km',
+        'min',
+        '24/7',
+        'ER',
+        'DIRECT',
+        'HOTLINE',
+        '118',
+        '012',
+      ]) {
+        expect(find.textContaining(gone), findsNothing, reason: gone);
+      }
 
-        expect(find.text('Fire & Rescue'), findsOneWidget);
-        expect(find.text('Russey Keo Fire • 1.8 km · 6 min'), findsOneWidget);
-        expect(find.text('HOTLINE 118'), findsOneWidget);
+      // Title style: 21 px, w700, ink.
+      final style = tester.widget<Text>(find.text('Medical')).style!;
+      expect(style.fontSize, 21);
+      expect(style.fontWeight, FontWeight.w700);
 
-        // Layered emblems + hero coordinates.
-        expect(find.byType(EmergencyEmblem), findsNWidgets(3));
-        expect(find.text('11.5813° N, 104.9158° E'), findsNothing);
-        expect(find.textContaining('YOUR LOCATION'), findsOneWidget);
-      },
-    );
+      // Card geometry: ~100 px tall, 64 px emblem, 42 px arrow chip.
+      final card = find.ancestor(
+        of: find.text('Medical'),
+        matching: find.byType(AppInteractiveCard),
+      );
+      expect(tester.getSize(card).height, closeTo(100, 4));
+      expect(
+        tester.getSize(find.byType(EmergencyEmblem).first),
+        const Size(64, 64),
+      );
+      expect(find.byIcon(Icons.arrow_forward_rounded), findsNWidgets(3));
+      expect(find.textContaining('YOUR LOCATION'), findsOneWidget);
+    });
 
-    testWidgets('Khmer mode is Khmer only — no English mixed in', (
+    testWidgets('Khmer cards: one Khmer title each, nothing else', (
       tester,
     ) async {
       final c = await boot(tester, AppRoutes.home);
       c.read(langProvider.notifier).set(AppLang.km);
       await frames(tester, 4);
-      expect(find.text('ពេទ្យសង្គ្រោះបន្ទាន់'), findsOneWidget);
-      expect(find.text('ផ្ទាល់ ០១២ ៨៥៥ ៧០៦'), findsOneWidget);
-      expect(find.text('៧៨៦៨៥'), findsNothing);
+      for (final title in ['ពេទ្យសង្គ្រោះ', 'ប៉ូលិស', 'ពន្លត់អគ្គិភ័យ']) {
+        final card = find.ancestor(
+          of: find.text(title),
+          matching: find.byType(AppInteractiveCard),
+        );
+        final texts = tester
+            .widgetList<Text>(
+              find.descendant(of: card, matching: find.byType(Text)),
+            )
+            .map((t) => t.data)
+            .toList();
+        expect(texts, [title], reason: title);
+      }
       expect(find.textContaining('Medical'), findsNothing);
       expect(find.textContaining('GPS'), findsNothing);
       expect(find.textContaining('SOS'), findsNothing);
@@ -198,11 +244,11 @@ void main() {
       expect(find.text('១១.៥៨១៣° ជើង, ១០៤.៩១៥៨° កើត'), findsNothing);
     });
 
-    testWidgets('chevron nudges on hover and opens the SOS screen', (
+    testWidgets('arrow nudges on hover and opens the SOS screen', (
       tester,
     ) async {
       await boot(tester, AppRoutes.home);
-      final chevron = find.byIcon(Icons.chevron_right_rounded).first;
+      final chevron = find.byIcon(Icons.arrow_forward_rounded).first;
       final slide = find.ancestor(
         of: chevron,
         matching: find.byType(AnimatedSlide),

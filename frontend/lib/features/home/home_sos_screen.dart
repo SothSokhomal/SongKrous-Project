@@ -458,6 +458,72 @@ class _GlassPill extends StatelessWidget {
 
 // ── Emergency category card ────────────────────────────────────────────────
 
+/// Per-category look: tinted glass, accent colour, watermark and arrow chip.
+class _CategoryStyle {
+  const _CategoryStyle({
+    required this.key,
+    required this.accent,
+    required this.tintTop,
+    required this.tintBottom,
+    required this.shadow,
+    required this.watermark,
+    required this.chip,
+  });
+
+  final String key;
+  final Color accent;
+  final Color tintTop;
+  final Color tintBottom;
+  final Color shadow;
+  final IconData watermark;
+
+  /// Background of the circular arrow button.
+  final Color chip;
+
+  static const medical = _CategoryStyle(
+    key: 'medical',
+    accent: Color(0xFFD91E2A),
+    tintTop: Color(0xE0FFFFFF), // #FFFFFF @ 0.88
+    tintBottom: Color(0xD1FFF1F2), // #FFF1F2 @ 0.82
+    shadow: Color(0x1AD91E2A),
+    watermark: Icons.medical_services_rounded,
+    chip: Color(0xFFFEE2E2),
+  );
+
+  static const police = _CategoryStyle(
+    key: 'police',
+    accent: Color(0xFF0F3D91),
+    tintTop: Color(0xE0FFFFFF),
+    tintBottom: Color(0xD1EFF6FF),
+    shadow: Color(0x1A0F3D91),
+    watermark: Icons.local_police_rounded,
+    chip: Color(0xFFDBEAFE),
+  );
+
+  static const fire = _CategoryStyle(
+    key: 'fire',
+    accent: Color(0xFFA8131D),
+    tintTop: Color(0xE0FFFFFF),
+    tintBottom: Color(0xD1FEF2F2),
+    shadow: Color(0x1AA8131D),
+    watermark: Icons.local_fire_department_rounded,
+    // Fire shares Medical's red arrow chip.
+    chip: Color(0xFFFEE2E2),
+  );
+
+  static _CategoryStyle of(FacilityType t) => switch (t) {
+    FacilityType.hospital => medical,
+    FacilityType.police => police,
+    FacilityType.fire => fire,
+  };
+
+  /// Arrow colour: Police blue, otherwise emergency red.
+  Color get arrow =>
+      this == police ? const Color(0xFF0F3D91) : const Color(0xFFD91E2A);
+}
+
+/// One emergency card: a single bold title, nothing else. Tap → that
+/// category on the map; the arrow → the SOS call screen.
 class _CategoryCard extends ConsumerWidget {
   const _CategoryCard({
     required this.type,
@@ -468,158 +534,151 @@ class _CategoryCard extends ConsumerWidget {
 
   final FacilityType type;
 
-  /// Closest facility of this type (live distance/ETA), or null.
+  /// Closest facility of this type. Not shown — only used to start the SOS
+  /// call for the right place.
   final RankedFacility? nearest;
   final VoidCallback onTap;
   final ValueChanged<Facility?> onSos;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final lang = ref.watch(langProvider);
-    final key = switch (type) {
-      FacilityType.hospital => 'medical',
-      FacilityType.police => 'police',
-      FacilityType.fire => 'fire',
-    };
-    // One language only — never "English / Khmer".
-    final title = ref.tr('cat_$key');
-
-    final facility = nearest?.facility;
-    final subtitle = nearest == null
-        ? ''
-        : '${facility!.shortName(lang)} • ${nearest!.summary(lang)}';
-    final pill = switch (type) {
-      FacilityType.hospital => ref.tr('tag_er'),
-      FacilityType.police =>
-        ref
-            .tr('pill_direct')
-            .replaceAll(
-              '{phone}',
-              ref.num(facility?.phone ?? EmergencyNumbers.police),
-            ),
-      FacilityType.fire =>
-        ref
-            .tr('pill_hotline')
-            .replaceAll(
-              '{phone}',
-              ref.num(facility?.phone ?? EmergencyNumbers.fire),
-            ),
-    };
-    final accent = type == FacilityType.police ? AppColors.blue : AppColors.red;
+    final style = _CategoryStyle.of(type);
+    // One language only, one line only.
+    final title = ref.tr('cat_${style.key}');
 
     return AppInteractiveCard(
       semanticLabel: title,
-      radius: 22,
-      glass: LiquidTint.frost,
+      radius: 24,
       onTap: onTap,
       // Emergency card: stronger haptic, deeper sink.
       haptic: AppHaptic.medium,
       pressedScale: 0.97,
-      padding: const EdgeInsets.fromLTRB(0, 14, 14, 14),
-      builder: (context, hovered, pressed) => Row(
-        children: [
-          // Left accent glow strip: 4 → 6 px on hover.
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            curve: AppCurves.out,
-            width: hovered ? 6 : 4,
-            height: 62,
-            decoration: BoxDecoration(
-              color: accent,
-              borderRadius: const BorderRadius.horizontal(
-                right: Radius.circular(4),
+      clip: Clip.antiAlias,
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [style.tintTop, style.tintBottom],
+      ),
+      // Crisp white specular rim; the category colour glows on hover.
+      restBorder: Colors.white.withValues(alpha: 0.95),
+      hoverBorder: style.accent.withValues(alpha: 0.35),
+      borderWidth: 1.5,
+      restShadow: [
+        BoxShadow(
+          color: style.shadow,
+          blurRadius: 24,
+          offset: const Offset(0, 10),
+        ),
+      ],
+      builder: (context, hovered, pressed) => SizedBox(
+        height: 100,
+        child: Stack(
+          children: [
+            // Faint rotated watermark in the right half (Wallet-style depth).
+            Positioned(
+              right: -14,
+              top: -8,
+              child: IgnorePointer(
+                child: Transform.rotate(
+                  angle: -0.28,
+                  child: Icon(
+                    style.watermark,
+                    size: 110,
+                    color: style.accent.withValues(alpha: 0.045),
+                  ),
+                ),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: accent.withValues(alpha: 0.45),
-                  blurRadius: 12,
-                ),
-              ],
             ),
-          ),
-          const SizedBox(width: 12),
-          AnimatedScale(
-            duration: const Duration(milliseconds: 160),
-            curve: AppCurves.out,
-            scale: hovered ? 1.06 : 1.0,
-            child: EmergencyEmblem(type: type, size: 60),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 16.5,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.ink,
-                    height: 1.5,
-                    fontFamilyFallback: ['Noto Sans Khmer'],
+            // Glowing accent pill on the left edge: 5 → 7 px on hover.
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  curve: AppCurves.out,
+                  width: hovered ? 7 : 5,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: style.accent,
+                    borderRadius: const BorderRadius.horizontal(
+                      right: Radius.circular(4),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: style.accent.withValues(alpha: 0.45),
+                        blurRadius: 12,
+                      ),
+                    ],
                   ),
                 ),
-                if (subtitle.isNotEmpty)
-                  Text(
-                    subtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF475569), // 7.6:1 on the frosted card
-                      height: 1.45,
-                      fontFamilyFallback: ['Noto Sans Khmer'],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              child: Row(
+                children: [
+                  AnimatedScale(
+                    duration: const Duration(milliseconds: 160),
+                    curve: AppCurves.out,
+                    scale: hovered ? 1.06 : 1.0,
+                    child: EmergencyEmblem(type: type, size: 64),
+                  ),
+                  const SizedBox(width: 18),
+                  // Shrinks (never wraps or clips) if a long Khmer title
+                  // meets a narrow phone.
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          style: const TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.ink,
+                            height: 1.5, // Khmer stacks need the room
+                            fontFamilyFallback: ['Noto Sans Khmer'],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                const SizedBox(height: 6),
-                LiquidGlassContainer(
-                  radius: 10,
-                  tint: LiquidTint.frostStrong,
-                  useBlur: false,
-                  shadow: false,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
+                  const SizedBox(width: 10),
+                  _ArrowButton(
+                    chip: style.chip,
+                    arrow: style.arrow,
+                    tooltip: ref.tr('sos_shortcut'),
+                    label: '${ref.tr('sos_shortcut')} $title',
+                    onTap: () => onSos(nearest?.facility),
                   ),
-                  child: Text(
-                    pill,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.3,
-                      color: type == FacilityType.police
-                          ? AppColors.blueDeep
-                          : const Color(0xFFB3121F),
-                      fontFamilyFallback: const ['Noto Sans Khmer'],
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 10),
-          _GlassChevron(
-            tooltip: ref.tr('sos_shortcut'),
-            label: '${ref.tr('sos_shortcut')} $title',
-            onTap: () => onSos(facility),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-/// 36 px glass circle with a chevron that nudges right on hover; opens the
-/// SOS screen for the nearest facility.
-class _GlassChevron extends StatelessWidget {
-  const _GlassChevron({
+/// 42 px tinted circle with an arrow that nudges 4 px right on hover; opens
+/// the SOS screen for the nearest facility of this category.
+class _ArrowButton extends StatelessWidget {
+  const _ArrowButton({
+    required this.chip,
+    required this.arrow,
     required this.label,
     required this.tooltip,
     required this.onTap,
   });
 
+  final Color chip;
+  final Color arrow;
   final String label;
   final String tooltip;
   final VoidCallback onTap;
@@ -642,23 +701,26 @@ class _GlassChevron extends StatelessWidget {
                 : hovered
                 ? 1.08
                 : 1.0,
-            child: LiquidGlassContainer(
-              radius: 18,
-              tint: LiquidTint.frostStrong,
-              useBlur: false,
-              hovered: hovered,
-              pressed: pressed,
-              width: 36,
-              height: 36,
+            child: Container(
+              width: 42,
+              height: 42,
               alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: chip,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  width: 1.2,
+                ),
+              ),
               child: AnimatedSlide(
                 duration: const Duration(milliseconds: 130),
                 curve: AppCurves.out,
                 offset: Offset(hovered ? 4 / 22 : 0, 0),
-                child: const Icon(
-                  Icons.chevron_right_rounded,
+                child: Icon(
+                  Icons.arrow_forward_rounded,
                   size: 22,
-                  color: AppColors.blueDeep,
+                  color: arrow,
                 ),
               ),
             ),

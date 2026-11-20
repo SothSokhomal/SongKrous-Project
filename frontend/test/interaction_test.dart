@@ -442,8 +442,8 @@ void main() {
                 matching: find.byWidgetPredicate(
                   (w) =>
                       w is AnimatedContainer &&
-                      (w.constraints?.maxWidth == 4 ||
-                          w.constraints?.maxWidth == 6),
+                      (w.constraints?.maxWidth == 5 ||
+                          w.constraints?.maxWidth == 7),
                 ),
               ),
             )
@@ -459,14 +459,14 @@ void main() {
             )
             .scale;
 
-        expect(strip(), 4);
+        expect(strip(), 5);
         expect(shield(), 1.0);
 
         final g = await mouse(tester);
         await g.moveTo(tester.getCenter(find.text('Medical')));
         await tester.pump(); // starts the implicit animations…
         await tester.pump(const Duration(milliseconds: 250)); // …and runs them
-        expect(strip(), 6);
+        expect(strip(), 7);
         expect(shield(), 1.06);
 
         await g.down(tester.getCenter(find.text('Medical')));
