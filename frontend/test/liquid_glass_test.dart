@@ -301,7 +301,7 @@ void main() {
       await tester.tap(find.text('Safety Tips'));
       await frames(tester, 6);
       expect(lens().x, closeTo(0, 1e-9));
-      await tester.tap(find.text('Hotline'));
+      await tester.tap(find.text('Activity'));
       await frames(tester, 6);
       expect(lens().x, closeTo(0.5, 1e-9));
       await tester.tap(find.text('Settings').last);

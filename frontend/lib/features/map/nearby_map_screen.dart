@@ -505,6 +505,11 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
                 minZoom: 10.5,
                 maxZoom: 19.0,
                 onMapReady: _onMapReady,
+                onTap: (_, _) {
+                  if (ref.read(selectedMapTargetProvider) != null) {
+                    ref.selectMapCategory(null);
+                  }
+                },
                 // The user always wins: touching the map cancels any
                 // in-flight programmatic camera move.
                 onPointerDown: (_, _) => _cancelCameraAnimation(),
@@ -692,10 +697,6 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
                 ),
               ),
 
-            // Prominent full-width SOS button panel replacing any bottom info panel
-            // so users can immediately trigger an emergency alert without confusion.
-            if (shown == null && !navigating && query.trim().isEmpty)
-              _buildBottomSosPanel(context, ref),
             // 5 ── The floating bottom nav bar is drawn by MainShell on top.
           ],
         );
@@ -775,91 +776,6 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildBottomSosPanel(BuildContext context, WidgetRef ref) {
-    return Positioned(
-      left: 16,
-      right: 16,
-      bottom: _navBlock(context) + 14,
-      child: Semantics(
-        button: true,
-        label: ref.tr('trigger_sos'),
-        child: AppInteractiveCard(
-          semanticLabel: ref.tr('trigger_sos'),
-          radius: 28,
-          haptic: AppHaptic.heavy,
-          pressedScale: 0.96,
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
-          ),
-          restBorder: Colors.white.withValues(alpha: 0.9),
-          hoverBorder: Colors.white,
-          borderWidth: 1.5,
-          restShadow: [
-            BoxShadow(
-              color: const Color(0xFFDC2626).withValues(alpha: 0.45),
-              blurRadius: 18,
-              offset: const Offset(0, 6),
-            ),
-          ],
-          onTap: () {
-            context.push(
-              AppRoutes.sosCall,
-              extra: PhnomPenhData.defaultSos,
-            );
-          },
-          builder: (context, hovered, pressed) => SizedBox(
-            height: 52,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.emergency_rounded,
-                    color: Colors.white,
-                    size: 22,
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        ref.tr('trigger_sos'),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                          fontFamilyFallback: ['Noto Sans Khmer'],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.arrow_forward_rounded,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 

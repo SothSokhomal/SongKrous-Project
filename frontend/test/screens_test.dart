@@ -24,6 +24,8 @@ void main() {
     '${AppRoutes.safety}/tips?situation=car',
     '${AppRoutes.safety}/tips?situation=fire',
     '${AppRoutes.safety}/tips?situation=medical',
+    AppRoutes.activity,
+    AppRoutes.activityDetail,
     AppRoutes.hotlines,
     AppRoutes.sosCall,
     AppRoutes.calling('Calmette Hospital', '+855 23 426 948'),

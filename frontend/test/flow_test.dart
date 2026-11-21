@@ -50,7 +50,7 @@ void main() {
       expect(find.text('Search hospital, police, fire...'), findsOneWidget);
       expect(find.text('Hospitals'), findsNothing); // category bar
       expect(find.text('Nearby Hospitals'), findsNothing); // sheet
-      expect(find.text('EMERGENCY SOS'), findsOneWidget);
+      expect(find.text('EMERGENCY SOS'), findsNothing);
       expect(find.text('Hospital'), findsWidgets); // target pin labels
       expect(tester.takeException(), isNull);
     },
@@ -127,7 +127,7 @@ void main() {
     await frames(tester, 12);
     expect(c.read(selectedMapTargetProvider), isNull);
     expect(find.text('Nearby Fire Stations'), findsNothing);
-    expect(find.text('EMERGENCY SOS'), findsOneWidget);
+    expect(find.text('EMERGENCY SOS'), findsNothing);
 
     // ✕ on the sheet header does the same.
     await tester.tap(find.text('Hospital').first); // pin
@@ -198,4 +198,21 @@ void main() {
     expect(find.text('4.5 km · 13 min').hitTestable(), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'tapping default map canvas deselects target and returns to State A with no SOS button',
+    (tester) async {
+      final c = await boot(tester, AppRoutes.home);
+      await tester.tap(find.text('Hospital'));
+      await frames(tester, 12);
+      expect(c.read(selectedMapTargetProvider), isNotNull);
+      expect(find.text('EMERGENCY SOS'), findsOneWidget);
+
+      // Tap on the default map background (away from pins/sheet)
+      await tester.tapAt(const Offset(80, 260));
+      await frames(tester, 12);
+      expect(c.read(selectedMapTargetProvider), isNull);
+      expect(find.text('EMERGENCY SOS'), findsNothing);
+    },
+  );
 }

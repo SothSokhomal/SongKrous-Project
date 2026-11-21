@@ -68,6 +68,7 @@ abstract final class AppStrings {
     'nav_home': _k('Home', 'ទំព័រដើម'),
     'nav_map': _k('Map', 'ផែនទី'),
     'nav_safety': _k('Safety Tips', 'គន្លឹះសុវត្ថិភាព'),
+    'nav_activity': _k('Activity', 'សកម្មភាព'),
     'nav_hotlines': _k('Hotline', 'ខ្សែទូរស័ព្ទ'),
     'nav_settings': _k('Settings', 'ការកំណត់'),
 
@@ -413,6 +414,38 @@ abstract final class AppStrings {
     'khan_directory': _k('Khans of Phnom Penh', 'ខណ្ឌនៃរាជធានីភ្នំពេញ'),
     'search_khan': _k('Search Khan...', 'ស្វែងរកខណ្ឌ...'),
     'khan_police': _k('Emergency police', 'នគរបាលសង្គ្រោះបន្ទាន់'),
+
+    // ── Activity ─────────────────────────────────────────────────────
+    'recent_activity': _k('Recent Activity', 'សកម្មភាពថ្មីៗ'),
+    'activity_subtitle': _k(
+      'Past emergency calls & SOS dispatches',
+      'ការហៅសង្គ្រោះបន្ទាន់ និងប្រវត្តិ SOS',
+    ),
+    'no_activity': _k(
+      'No activity in this category',
+      'គ្មានសកម្មភាពក្នុងប្រភេទនេះទេ',
+    ),
+    'filter_hospital': _k('Hospital', 'មន្ទីរពេទ្យ'),
+    'filter_police': _k('Police', 'ប៉ូលិស'),
+    'filter_fire': _k('Fire Station', 'ពន្លត់អគ្គិភ័យ'),
+    'filter_sos': _k('SOS', 'SOS'),
+    'status_completed': _k('Completed', 'បានបញ្ចប់'),
+    'status_dispatched': _k('Dispatched', 'បានបញ្ជូន'),
+    'status_connected': _k('Connected', 'បានភ្ជាប់'),
+    'incident_id': _k('Incident ID', 'លេខសម្គាល់ហេតុការណ៍'),
+    'incident_id_copied': _k(
+      'Incident ID copied to clipboard',
+      'បានចម្លងលេខសម្គាល់ហេតុការណ៍',
+    ),
+    'response_rating': _k('Response rating', 'ការវាយតម្លៃការឆ្លើយតប'),
+    'call_dispatch_info': _k(
+      'Call & dispatch info',
+      'ព័ត៌មានការហៅ និងបញ្ជូន',
+    ),
+    'call_mode': _k('Call mode', 'ទម្រង់ការហៅ'),
+    'priority': _k('Priority', 'កម្រិតអាទិភាព'),
+    'profile': _k('Profile', 'កម្រងព័ត៌មាន'),
+    'copy': _k('Copy', 'ចម្លង'),
   };
 
   /// Khmer numerals for `0-9` in Khmer mode (`012` → `០១២`); unchanged in

@@ -5,6 +5,9 @@ import '../animations/app_animations.dart';
 import '../constants/facilities.dart';
 import '../constants/phnom_penh_data.dart';
 import '../../features/chat/emergency_chat_screen.dart';
+import '../../features/activity/activity_screen.dart';
+import '../../features/activity/activity_detail_screen.dart';
+import '../../features/activity/models/emergency_activity.dart';
 import '../../features/home/home_sos_screen.dart';
 import '../../features/home/outgoing_call_screen.dart';
 import '../../features/home/sos_call_screen.dart';
@@ -85,6 +88,24 @@ final GoRouter appRouter = GoRouter(
           buildIosPageTransition(state: s, child: const SettingsScreen()),
     ),
     GoRoute(
+      path: AppRoutes.activityDetail,
+      parentNavigatorKey: _rootKey,
+      pageBuilder: (_, s) => buildIosPageTransition(
+        state: s,
+        child: ActivityDetailScreen(
+          activity: s.extra is EmergencyActivity
+              ? s.extra as EmergencyActivity
+              : kSampleActivities.first,
+        ),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.hotlines,
+      parentNavigatorKey: _rootKey,
+      pageBuilder: (_, s) =>
+          buildIosPageTransition(state: s, child: const HotlinesScreen()),
+    ),
+    GoRoute(
       path: AppRoutes.chat,
       parentNavigatorKey: _rootKey,
       pageBuilder: (_, s) => buildIosPageTransition(
@@ -150,8 +171,8 @@ final GoRouter appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: AppRoutes.hotlines,
-              builder: (_, _) => const HotlinesScreen(),
+              path: AppRoutes.activity,
+              builder: (_, _) => const ActivityScreen(),
             ),
           ],
         ),

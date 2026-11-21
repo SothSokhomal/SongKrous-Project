@@ -18,7 +18,7 @@ const _items = [
   _NavItem(Icons.shield_outlined, 'nav_home', badge: 'sos_shortcut'),
   _NavItem(Icons.map_outlined, 'nav_map'),
   _NavItem(Icons.chat_bubble_outline_rounded, 'nav_safety'),
-  _NavItem(Icons.phone_outlined, 'nav_hotlines'),
+  _NavItem(Icons.receipt_long_outlined, 'nav_activity'),
   _NavItem(Icons.settings_outlined, 'nav_settings'),
 ];
 

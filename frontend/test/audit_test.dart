@@ -68,6 +68,8 @@ void main() {
       '${AppRoutes.safety}/tips?situation=car': null,
       '${AppRoutes.safety}/tips?situation=fire': null,
       '${AppRoutes.safety}/tips?situation=medical': null,
+      AppRoutes.activity: null,
+      AppRoutes.activityDetail: null,
       AppRoutes.hotlines: null,
       AppRoutes.settings: null,
       AppRoutes.sosCall: null,

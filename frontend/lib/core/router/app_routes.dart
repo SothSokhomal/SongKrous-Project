@@ -11,6 +11,8 @@ abstract final class AppRoutes {
   static const outgoingCall = '/calling'; // ?name=&number=
   static const chat = '/chat'; // extra: Facility
 
+  static const activityDetail = '/activity/detail'; // extra: EmergencyActivity
+
   static const settings = '/settings';
 
   // Tabs
@@ -18,6 +20,7 @@ abstract final class AppRoutes {
   static const map = '/map';
   static const safety = '/safety';
   static const safetyTips = '/safety/tips'; // ?situation=car|fire|medical
+  static const activity = '/activity';
   static const hotlines = '/hotlines';
 
   static String calling(String name, String number) => Uri(

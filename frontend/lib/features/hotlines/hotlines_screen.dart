@@ -38,21 +38,23 @@ class _HotlinesScreenState extends ConsumerState<HotlinesScreen> {
         )
         .toList();
 
-    return LiquidAmbientCanvas(
-      child: SafeArea(
-        bottom: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child: ListView(
-              padding: EdgeInsets.fromLTRB(
-                20,
-                12,
-                20,
-                MainShell.navClearance(context),
-              ),
-              children: [
-                Text(ref.tr('hotlines_title'), style: text.headlineMedium),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: LiquidAmbientCanvas(
+        child: SafeArea(
+          bottom: false,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  12,
+                  20,
+                  MainShell.navClearance(context),
+                ),
+                children: [
+                  Text(ref.tr('hotlines_title'), style: text.headlineMedium),
                 const SizedBox(height: 16),
                 Text(ref.tr('khan_directory'), style: text.titleLarge),
                 const SizedBox(height: 12),
@@ -92,7 +94,8 @@ class _HotlinesScreenState extends ConsumerState<HotlinesScreen> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 }
 
