@@ -25,17 +25,6 @@ import 'widgets/facility_sheet.dart';
 import 'widgets/map_markers.dart';
 import 'widgets/navigation_widgets.dart';
 
-/// Nearby Map with progressive disclosure.
-///
-/// **State A** (`selectedMapTargetProvider == null`): clean map — search bar,
-/// Khan pill, tappable pins and the recenter button only.
-///
-/// **State B** (a category is selected, by tapping a pin or a Home card): a
-/// Grab-style bottom sheet is docked to the bottom edge *under* the floating
-/// nav bar. It peeks (`Nearby Hospitals (3)`), opens half-way (category tabs +
-/// rows) and expands fully; a route line is drawn from the user to the
-/// selected (nearest by default) facility, the camera frames it above the
-/// sheet, and a route pill rides 12 px above the sheet's top edge.
 class NearbyMapScreen extends ConsumerStatefulWidget {
   const NearbyMapScreen({super.key});
 
@@ -170,9 +159,6 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
     return false;
   }
 
-  /// The controller is the source of truth: if a notification is missed or
-  /// reordered (e.g. while rows re-measure), the collapsed/extent state still
-  /// catches up on the next controller change.
   void _onSheetController() {
     if (_sheetController.isAttached) _applyExtent(_sheetController.size);
   }
@@ -216,8 +202,6 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
       }
       // After the rebuild for the new selection, so the right row is measured.
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        // One more frame: the sheet's scroll position is still settling the
-        // layout for the new selection and would drop a just-started animation.
         SchedulerBinding.instance.addPostFrameCallback((_) {
           if (mounted) _ensureSelectedClear();
         });
@@ -271,13 +255,11 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
     }
   }
 
-  /// Height of the floating nav bar (incl. its gap and the system inset) that
-  /// overlays the bottom of the map area. Inside the shell body with
-  /// `extendBody`, `padding.bottom` already equals exactly that.
+
   double _navBlock(BuildContext context) =>
       MediaQuery.paddingOf(context).bottom;
 
-  // ── Camera ────────────────────────────────────────────────────────────
+ 
 
   void _onMapReady() {
     _mapReady = true;
@@ -420,6 +402,9 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
 
   void _call(Facility f) =>
       context.push(AppRoutes.calling(f.name(ref.read(langProvider)), f.phone));
+
+  void _chat(Facility f) =>
+      context.push(AppRoutes.chat, extra: f);
 
   // ── Build ─────────────────────────────────────────────────────────────
 
@@ -721,8 +706,10 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
             child: NavInfoPill(
               target: sel,
               navigating: navigating,
-              onPrimary: () => _call(sel.facility),
-              onDetails: () => _call(sel.facility),
+              onPrimary: () =>
+                  navigating ? _chat(sel.facility) : _call(sel.facility),
+              onDetails: () =>
+                  navigating ? _chat(sel.facility) : _call(sel.facility),
             ),
             builder: (context, extent, pill) {
               final e = math.max(extent, _minSize);

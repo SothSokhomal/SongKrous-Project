@@ -110,6 +110,32 @@ void main() {
     },
   );
 
+  testWidgets(
+    'clicking Directions changes button to Send Message and directs to message screen',
+    (tester) async {
+      await boot(tester, AppRoutes.home);
+      await tester.tap(find.text('Hospital'));
+      await frames(tester, 12);
+      expect(find.text('EMERGENCY SOS'), findsOneWidget);
+      expect(find.byTooltip('Directions'), findsOneWidget);
+
+      // Tap Directions button
+      await tester.tap(find.byTooltip('Directions'));
+      await frames(tester, 12);
+
+      // Button changes from Call Now to Send Message
+      expect(find.text('Send Message'), findsOneWidget);
+      expect(find.text('Call Now'), findsNothing);
+
+      // Tapping Send Message directs to the chat/message screen
+      await tester.tap(find.text('Send Message'));
+      await frames(tester, 12);
+
+      expect(path(), AppRoutes.chat);
+      expect(find.text('Calmette Hospital'), findsWidgets);
+    },
+  );
+
   testWidgets('category bar switches category; All / ✕ return to State A', (
     tester,
   ) async {

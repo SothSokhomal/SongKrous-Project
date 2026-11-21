@@ -143,19 +143,33 @@ class _TopBar extends ConsumerWidget {
     final color = gpsActive ? AppColors.blueDeep : AppColors.red;
     return Row(
       children: [
-        Flexible(
-          child: Text(
-            ref.tr('app_name'),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppColors.blueDeep,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
+        // Official SongKrous brand emblem replacing the truncated letters
+        Semantics(
+          label: ref.tr('app_name'),
+          image: true,
+          child: LiquidGlassContainer(
+            radius: 12,
+            tint: LiquidTint.frostStrong,
+            useBlur: false,
+            width: 38,
+            height: 38,
+            padding: const EdgeInsets.all(4),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/images/app_logo.png',
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+                errorBuilder: (_, _, _) => const Icon(
+                  Icons.emergency_rounded,
+                  color: AppColors.red,
+                  size: 22,
+                ),
+              ),
             ),
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
         // GPS status: frosted glass pill with a live green beacon.
         Semantics(
           button: true,
@@ -488,10 +502,7 @@ class _CategoryStyle {
 /// One emergency card: a single bold title, nothing else. Tap → that
 /// category on the map; the arrow → the SOS call screen.
 class _CategoryCard extends ConsumerWidget {
-  const _CategoryCard({
-    required this.type,
-    required this.onTap,
-  });
+  const _CategoryCard({required this.type, required this.onTap});
 
   final FacilityType type;
   final VoidCallback onTap;

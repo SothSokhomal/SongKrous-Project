@@ -34,12 +34,12 @@ class NavInfoPill extends ConsumerWidget {
       expand: true,
       fontSize: 15,
       leadingIcon: navigating
-          ? Icons.call_rounded
+          ? Icons.chat_bubble_rounded
           : Icons.emergency_rounded,
-      label: ref.tr(navigating ? 'call_now' : 'trigger_sos'),
+      label: ref.tr(navigating ? 'send_message' : 'trigger_sos'),
       colors: f.type == FacilityType.police
           ? AppButtonColors.glassBlue
-          : AppButtonColors.danger,
+          : (navigating ? AppButtonColors.glassBlue : AppButtonColors.danger),
       haptic: AppHaptic.heavy,
       onPressed: onPrimary,
     );
