@@ -60,13 +60,13 @@ Future<ProviderContainer> boot(
 void main() {
   setUp(() => appRouter.go(AppRoutes.splash));
 
-  testWidgets('Home has a gear that opens Settings; back returns', (
+  testWidgets('Top bar has no settings gear; bottom nav opens Settings; back returns', (
     tester,
   ) async {
     await boot(tester, AppRoutes.home);
-    await tester.tap(find.byKey(const ValueKey('home-settings')));
+    expect(find.byKey(const ValueKey('home-settings')), findsNothing);
+    await tester.tap(find.text('Settings').last);
     await ms(tester, 700);
-    expect(path(), AppRoutes.settings);
     expect(find.text('Settings'), findsWidgets);
     await tester.tap(find.byKey(const ValueKey('settings-back')));
     await ms(tester, 700);

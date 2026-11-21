@@ -65,10 +65,11 @@ abstract final class AppStrings {
     'dont_allow': _k("Don't Allow", 'មិនអនុញ្ញាត'),
 
     // ── Navigation ───────────────────────────────────────────────────
-    'nav_home': _k('SOS Home', 'ទំព័រដើម'),
-    'nav_map': _k('Nearby Map', 'ផែនទីជិតខ្លួន'),
+    'nav_home': _k('Home', 'ទំព័រដើម'),
+    'nav_map': _k('Map', 'ផែនទី'),
     'nav_safety': _k('Safety Tips', 'គន្លឹះសុវត្ថិភាព'),
-    'nav_hotlines': _k('Hotlines', 'ខ្សែទូរស័ព្ទ'),
+    'nav_hotlines': _k('Hotline', 'ខ្សែទូរស័ព្ទ'),
+    'nav_settings': _k('Settings', 'ការកំណត់'),
 
     // ── Home ─────────────────────────────────────────────────────────
     'gps_active': _k('GPS Active', 'ទីតាំងដំណើរការ'),
@@ -128,9 +129,10 @@ abstract final class AppStrings {
     'unit_min': _k('min', 'នាទី'),
     'unit_m': _k('m', 'ម៉ែត្រ'),
     'swipe_up': _k('Swipe up', 'អូសឡើងលើ'),
-    'cat_medical': _k('Medical', 'ពេទ្យសង្គ្រោះ'),
+    'cat_medical': _k('Hospital', 'មន្ទីរពេទ្យ'),
     'cat_police': _k('Police', 'ប៉ូលិស'),
     'cat_fire': _k('Fire', 'ពន្លត់អគ្គិភ័យ'),
+    'trigger_sos': _k('EMERGENCY SOS', 'សង្គ្រោះបន្ទាន់'),
 
     // ── Emergency chat ───────────────────────────────────────────────
     'chat_connected': _k('Connected • {phone}', 'បានភ្ជាប់ • {phone}'),

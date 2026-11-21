@@ -18,7 +18,7 @@ Future<void> showAvatarViewer(
   BuildContext context, {
   required VoidCallback onChange,
 }) {
-  return Navigator.of(context).push(
+  return Navigator.of(context, rootNavigator: true).push(
     PageRouteBuilder<void>(
       opaque: false,
       barrierColor: Colors.transparent,

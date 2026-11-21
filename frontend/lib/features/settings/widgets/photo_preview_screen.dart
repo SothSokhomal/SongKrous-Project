@@ -15,7 +15,7 @@ import '../../../shared/widgets/app_interactive.dart';
 /// result as PNG bytes (or the original bytes if capturing fails), `null` when
 /// cancelled.
 Future<Uint8List?> showPhotoPreview(BuildContext context, Uint8List bytes) {
-  return Navigator.of(context).push<Uint8List>(
+  return Navigator.of(context, rootNavigator: true).push<Uint8List>(
     MaterialPageRoute(
       fullscreenDialog: true,
       builder: (_) => PhotoPreviewScreen(bytes: bytes),

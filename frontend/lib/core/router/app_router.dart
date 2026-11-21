@@ -155,6 +155,14 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/settings-tab',
+              builder: (_, _) => const SettingsScreen(),
+            ),
+          ],
+        ),
       ],
     ),
   ],

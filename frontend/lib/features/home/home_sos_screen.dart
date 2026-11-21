@@ -218,35 +218,6 @@ class _TopBar extends ConsumerWidget {
         ),
         const SizedBox(width: 6),
         const LanguageCompactToggle(),
-        const SizedBox(width: 6),
-        // Settings: account, language, privacy, log out.
-        Semantics(
-          button: true,
-          label: ref.tr('settings'),
-          child: AppPressable(
-            key: const ValueKey('home-settings'),
-            onTap: () => context.push(AppRoutes.settings),
-            haptic: AppHaptic.selection,
-            builder: (context, hovered, pressed) => AnimatedScale(
-              duration: const Duration(milliseconds: 120),
-              scale: pressed ? 0.92 : 1,
-              child: LiquidGlassContainer(
-                width: 36,
-                height: 36,
-                radius: 18,
-                useBlur: false,
-                hovered: hovered,
-                pressed: pressed,
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.settings_rounded,
-                  size: 20,
-                  color: AppColors.blueDeep,
-                ),
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -267,61 +238,60 @@ class _LocationHero extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final text = Theme.of(context).textTheme;
     final lang = ref.watch(langProvider);
     return LiquidGlassContainer(
-      radius: 26,
+      radius: 18,
       tint: LiquidTint.blue,
       useBlur: false,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               if (loc.gpsActive)
-                const LiveBeacon(color: Color(0xFF4ADE80), size: 8)
+                const LiveBeacon(color: Color(0xFF4ADE80), size: 7)
               else
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: 7,
+                  height: 7,
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.6),
                     shape: BoxShape.circle,
                   ),
                 ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Text(
                 '📍 ${ref.tr('your_location')}',
-                style: text.labelSmall?.copyWith(
-                  color: AppColors.white.withValues(alpha: 0.9),
-                  letterSpacing: 1,
+                style: TextStyle(
+                  fontSize: 10,
+                  letterSpacing: 0.8,
                   fontWeight: FontWeight.w700,
+                  color: AppColors.white.withValues(alpha: 0.85),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  '• ${loc.headlineFor(lang)}, ${loc.khanLineFor(lang)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppColors.white,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    fontFamilyFallback: ['Noto Sans Khmer'],
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            loc.headlineFor(lang),
-            style: text.titleLarge?.copyWith(
-              color: AppColors.white,
-              fontSize: 21,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            loc.khanLineFor(lang),
-            style: text.bodyMedium?.copyWith(
-              color: AppColors.white.withValues(alpha: 0.92),
-            ),
-          ),
-          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(child: _CopyPill(onCopy: onCopy)),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: _GlassPill(
                   icon: Icons.map_rounded,
@@ -414,8 +384,8 @@ class _GlassPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppInteractiveButton(
-      height: 46,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       colors: colors,
       haptic: haptic,
       onPressed: onTap,
@@ -434,18 +404,20 @@ class _GlassPill extends StatelessWidget {
           key: ValueKey(switchKey),
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 18, color: colors.fg),
-            const SizedBox(width: 6),
+            Icon(icon, size: 16, color: colors.fg),
+            const SizedBox(width: 4),
             Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: colors.fg,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13.5,
-                  fontFamilyFallback: const ['Noto Sans Khmer'],
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: colors.fg,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12.5,
+                    fontFamilyFallback: const ['Noto Sans Khmer'],
+                  ),
                 ),
               ),
             ),
@@ -548,7 +520,7 @@ class _CategoryCard extends ConsumerWidget {
 
     return AppInteractiveCard(
       semanticLabel: title,
-      radius: 24,
+      radius: 26,
       onTap: onTap,
       // Emergency card: stronger haptic, deeper sink.
       haptic: AppHaptic.medium,
@@ -561,7 +533,7 @@ class _CategoryCard extends ConsumerWidget {
       ),
       // Crisp white specular rim; the category colour glows on hover.
       restBorder: Colors.white.withValues(alpha: 0.95),
-      hoverBorder: style.accent.withValues(alpha: 0.35),
+      hoverBorder: style.accent.withValues(alpha: 0.4),
       borderWidth: 1.5,
       restShadow: [
         BoxShadow(
@@ -571,20 +543,27 @@ class _CategoryCard extends ConsumerWidget {
         ),
       ],
       builder: (context, hovered, pressed) => SizedBox(
-        height: 100,
+        height: 136,
         child: Stack(
           children: [
-            // Faint rotated watermark in the right half (Wallet-style depth).
+            // Subtle, large shadow/watermark background icon inside the card
             Positioned(
-              right: -14,
-              top: -8,
+              right: -12,
+              bottom: -16,
               child: IgnorePointer(
                 child: Transform.rotate(
-                  angle: -0.28,
+                  angle: -0.15,
                   child: Icon(
                     style.watermark,
-                    size: 110,
-                    color: style.accent.withValues(alpha: 0.045),
+                    size: 152,
+                    color: style.accent.withValues(alpha: 0.08),
+                    shadows: [
+                      Shadow(
+                        color: style.shadow,
+                        blurRadius: 20,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -599,7 +578,7 @@ class _CategoryCard extends ConsumerWidget {
                   duration: const Duration(milliseconds: 160),
                   curve: AppCurves.out,
                   width: hovered ? 7 : 5,
-                  height: 48,
+                  height: 60,
                   decoration: BoxDecoration(
                     color: style.accent,
                     borderRadius: const BorderRadius.horizontal(
@@ -616,14 +595,14 @@ class _CategoryCard extends ConsumerWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
               child: Row(
                 children: [
                   AnimatedScale(
                     duration: const Duration(milliseconds: 160),
                     curve: AppCurves.out,
                     scale: hovered ? 1.06 : 1.0,
-                    child: EmergencyEmblem(type: type, size: 64),
+                    child: EmergencyEmblem(type: type, size: 72),
                   ),
                   const SizedBox(width: 18),
                   // Shrinks (never wraps or clips) if a long Khmer title
@@ -638,17 +617,17 @@ class _CategoryCard extends ConsumerWidget {
                           title,
                           maxLines: 1,
                           style: const TextStyle(
-                            fontSize: 21,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 23,
+                            fontWeight: FontWeight.w800,
                             color: AppColors.ink,
-                            height: 1.5, // Khmer stacks need the room
+                            height: 1.4, // Khmer stacks need the room
                             fontFamilyFallback: ['Noto Sans Khmer'],
                           ),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   _ArrowButton(
                     chip: style.chip,
                     arrow: style.arrow,

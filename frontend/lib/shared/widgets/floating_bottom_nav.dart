@@ -19,6 +19,7 @@ const _items = [
   _NavItem(Icons.map_outlined, 'nav_map'),
   _NavItem(Icons.chat_bubble_outline_rounded, 'nav_safety'),
   _NavItem(Icons.phone_outlined, 'nav_hotlines'),
+  _NavItem(Icons.settings_outlined, 'nav_settings'),
 ];
 
 /// iOS 26 Liquid Glass dock floating 16 px above the bottom safe area.
@@ -179,22 +180,22 @@ class _NavButton extends StatelessWidget {
                     // The SOS badge stays crisp (not scaled/lifted).
                     if (badge != null)
                       Positioned(
-                        top: -6,
-                        right: -16,
+                        top: -5,
+                        right: -10,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 5,
+                            horizontal: 4,
                             vertical: 1,
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.red,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             badge!,
                             style: const TextStyle(
                               color: AppColors.white,
-                              fontSize: 9,
+                              fontSize: 8.5,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -204,7 +205,7 @@ class _NavButton extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 1),
                   child: AnimatedDefaultTextStyle(
                     duration: duration,
                     curve: AppCurves.out,
@@ -212,11 +213,14 @@ class _NavButton extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: color,
-                      fontSize: 10.5,
+                      fontSize: 10,
                       fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                       fontFamilyFallback: const ['Noto Sans Khmer'],
                     ),
-                    child: Text(label),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(label),
+                    ),
                   ),
                 ),
               ],

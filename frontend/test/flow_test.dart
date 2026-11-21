@@ -91,7 +91,7 @@ void main() {
     'row tap re-routes; Start Route shows the banner; Exit hides it',
     (tester) async {
       await boot(tester, AppRoutes.home);
-      await tester.tap(find.text('Medical'));
+      await tester.tap(find.text('Hospital'));
       await frames(tester, 12);
       expect(find.text('4 min • 1.2 km'), findsOneWidget); // Calmette (nearest)
 
@@ -119,7 +119,7 @@ void main() {
     tester,
   ) async {
     final c = await boot(tester, AppRoutes.home);
-    await tester.tap(find.text('Medical'));
+    await tester.tap(find.text('Hospital'));
     await frames(tester, 12);
 
     await tester.tap(find.text('Fire')); // bar tab (label is the tab text)
@@ -148,7 +148,7 @@ void main() {
     tester,
   ) async {
     await boot(tester, AppRoutes.home);
-    await tester.tap(find.text('Medical'));
+    await tester.tap(find.text('Hospital'));
     await frames(tester, 12);
 
     await tester.tap(find.byTooltip('Call').first);
@@ -163,20 +163,20 @@ void main() {
     final c = await boot(tester, AppRoutes.home);
 
     // Enter State B first.
-    await tester.tap(find.text('Medical'));
+    await tester.tap(find.text('Hospital'));
     await frames(tester, 12);
     expect(c.read(selectedMapTargetProvider), isNotNull);
 
     // Back to Home, then the bottom-bar "Nearby Map" → State A.
-    await tester.tap(find.text('SOS Home'));
+    await tester.tap(find.text('Home'));
     await frames(tester);
-    await tester.tap(find.text('Nearby Map'));
+    await tester.tap(find.text('Map'));
     await frames(tester, 12);
     expect(c.read(selectedMapTargetProvider), isNull);
     expect(find.text('Nearby Hospitals'), findsNothing);
 
     // Home banner "View Map" → State A as well.
-    await tester.tap(find.text('SOS Home'));
+    await tester.tap(find.text('Home'));
     await frames(tester);
     await tester.tap(find.text('View Map'));
     await frames(tester, 12);

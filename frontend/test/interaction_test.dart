@@ -432,7 +432,7 @@ void main() {
       (tester) async {
         await boot(tester, AppRoutes.home);
         final card = find.ancestor(
-          of: find.text('Medical'),
+          of: find.text('Hospital'),
           matching: find.byType(AppInteractiveCard),
         );
         double strip() => tester
@@ -463,13 +463,13 @@ void main() {
         expect(shield(), 1.0);
 
         final g = await mouse(tester);
-        await g.moveTo(tester.getCenter(find.text('Medical')));
+        await g.moveTo(tester.getCenter(find.text('Hospital')));
         await tester.pump(); // starts the implicit animations…
         await tester.pump(const Duration(milliseconds: 250)); // …and runs them
         expect(strip(), 7);
         expect(shield(), 1.06);
 
-        await g.down(tester.getCenter(find.text('Medical')));
+        await g.down(tester.getCenter(find.text('Hospital')));
         await tester.pump(const Duration(milliseconds: 16));
         expect(tester.widget<AnimatedScale>(scaleOf(card)).scale, 0.97);
         await g.up();

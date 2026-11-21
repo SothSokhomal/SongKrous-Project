@@ -163,7 +163,7 @@ void main() {
     ) async {
       await boot(tester, AppRoutes.home);
 
-      expect(find.text('Medical'), findsOneWidget);
+      expect(find.text('Hospital'), findsOneWidget);
       expect(find.text('Police'), findsOneWidget);
       expect(find.text('Fire'), findsOneWidget);
       expect(find.byType(EmergencyEmblem), findsNWidgets(3));
@@ -172,7 +172,7 @@ void main() {
       // distance, facility name or badge.
       final cards = find.byType(AppInteractiveCard);
       expect(cards, findsNWidgets(3));
-      for (final title in ['Medical', 'Police', 'Fire']) {
+      for (final title in ['Hospital', 'Police', 'Fire']) {
         final card = find.ancestor(
           of: find.text(title),
           matching: find.byType(AppInteractiveCard),
@@ -199,20 +199,20 @@ void main() {
         expect(find.textContaining(gone), findsNothing, reason: gone);
       }
 
-      // Title style: 21 px, w700, ink.
-      final style = tester.widget<Text>(find.text('Medical')).style!;
-      expect(style.fontSize, 21);
-      expect(style.fontWeight, FontWeight.w700);
+      // Title style: 23 px, w800, ink.
+      final style = tester.widget<Text>(find.text('Hospital')).style!;
+      expect(style.fontSize, 23);
+      expect(style.fontWeight, FontWeight.w800);
 
-      // Card geometry: ~100 px tall, 64 px emblem, 42 px arrow chip.
+      // Card geometry: ~136 px tall, 72 px emblem, 42 px arrow chip.
       final card = find.ancestor(
-        of: find.text('Medical'),
+        of: find.text('Hospital'),
         matching: find.byType(AppInteractiveCard),
       );
-      expect(tester.getSize(card).height, closeTo(100, 4));
+      expect(tester.getSize(card).height, closeTo(136, 4));
       expect(
         tester.getSize(find.byType(EmergencyEmblem).first),
-        const Size(64, 64),
+        const Size(72, 72),
       );
       expect(find.byIcon(Icons.arrow_forward_rounded), findsNWidgets(3));
       expect(find.textContaining('YOUR LOCATION'), findsOneWidget);
@@ -224,7 +224,7 @@ void main() {
       final c = await boot(tester, AppRoutes.home);
       c.read(langProvider.notifier).set(AppLang.km);
       await frames(tester, 4);
-      for (final title in ['ពេទ្យសង្គ្រោះ', 'ប៉ូលិស', 'ពន្លត់អគ្គិភ័យ']) {
+      for (final title in ['មន្ទីរពេទ្យ', 'ប៉ូលិស', 'ពន្លត់អគ្គិភ័យ']) {
         final card = find.ancestor(
           of: find.text(title),
           matching: find.byType(AppInteractiveCard),
@@ -311,16 +311,19 @@ void main() {
                   .alignment
               as Alignment;
 
-      expect(lens(), const Alignment(-1, 0)); // SOS Home
-      await tester.tap(find.text('Nearby Map'));
+      expect(lens(), const Alignment(-1, 0)); // Home
+      await tester.tap(find.text('Map'));
       await frames(tester, 6);
-      expect(lens().x, closeTo(-1 / 3, 1e-9));
+      expect(lens().x, closeTo(-0.5, 1e-9));
       await tester.tap(find.text('Safety Tips'));
       await frames(tester, 6);
-      expect(lens().x, closeTo(1 / 3, 1e-9));
-      await tester.tap(find.text('Hotlines'));
+      expect(lens().x, closeTo(0, 1e-9));
+      await tester.tap(find.text('Hotline'));
       await frames(tester, 6);
-      expect(lens().x, closeTo(1, 1e-9));
+      expect(lens().x, closeTo(0.5, 1e-9));
+      await tester.tap(find.text('Settings').last);
+      await frames(tester, 6);
+      expect(lens().x, closeTo(1.0, 1e-9));
     });
   });
 

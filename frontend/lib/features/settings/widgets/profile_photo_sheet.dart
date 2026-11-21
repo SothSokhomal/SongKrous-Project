@@ -27,6 +27,7 @@ Future<PhotoChoice?> showProfilePhotoSheet(
 }) {
   return showModalBottomSheet<PhotoChoice>(
     context: context,
+    useRootNavigator: true,
     backgroundColor: Colors.transparent,
     elevation: 0,
     isScrollControlled: true,
