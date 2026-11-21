@@ -65,13 +65,6 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                 color: AppColors.blueDeep,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              ref.tr('activity_subtitle'),
-              style: text.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
             const SizedBox(height: 16),
 
             // Quick filter chips (wrapped for clean responsive layout)

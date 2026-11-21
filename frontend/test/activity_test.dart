@@ -65,7 +65,7 @@ void main() {
       await boot(tester, route: AppRoutes.activity);
 
       expect(find.text('Recent Activity'), findsOneWidget);
-      expect(find.text('Past emergency calls & SOS dispatches'), findsOneWidget);
+      expect(find.text('Past emergency calls & SOS dispatches'), findsNothing);
 
       // Verify all filter chips
       expect(find.text('All'), findsOneWidget);

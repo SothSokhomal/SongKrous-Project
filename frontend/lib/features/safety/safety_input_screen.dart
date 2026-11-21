@@ -81,29 +81,22 @@ class _SafetyInputScreenState extends ConsumerState<SafetyInputScreen> {
                 // Top branding header
                 Row(
                   children: [
-                    Text(
-                      ref.tr('safety'),
-                      style: text.titleMedium?.copyWith(
-                        color: AppColors.blue,
-                        fontWeight: FontWeight.w700,
+                    Expanded(
+                      child: Text(
+                        ref.tr('safety_title'),
+                        style: text.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.blueDeep,
+                        ),
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 12),
                     const Icon(
                       Icons.verified_user_rounded,
                       color: AppColors.blue,
-                      size: 22,
+                      size: 24,
                     ),
                   ],
-                ),
-                const SizedBox(height: 14),
-                Text(ref.tr('safety_title'), style: text.headlineMedium),
-                const SizedBox(height: 6),
-                Text(
-                  ref.tr('safety_hub_sub'),
-                  style: text.bodyLarge?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
                 ),
                 const SizedBox(height: 16),
                 // Pinned urgent help banner

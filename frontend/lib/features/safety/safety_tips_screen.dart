@@ -71,18 +71,9 @@ class _SafetyTipsScreenState extends ConsumerState<SafetyTipsScreen> {
                           : context.go(AppRoutes.safety),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
 
-                  // Tag & Category Title
-                  Text(
-                    '${ref.tr('for_situation')} · ${ref.tr(situation.labelKey).toUpperCase()}',
-                    style: text.labelSmall?.copyWith(
-                      color: situation.iconColor,
-                      letterSpacing: 1.2,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
+                  // Category Title
                   Text(
                     ref.tr(situation.labelKey),
                     style: text.headlineMedium?.copyWith(

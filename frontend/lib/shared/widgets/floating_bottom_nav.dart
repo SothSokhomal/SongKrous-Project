@@ -15,7 +15,7 @@ class _NavItem {
 }
 
 const _items = [
-  _NavItem(Icons.shield_outlined, 'nav_home', badge: 'sos_shortcut'),
+  _NavItem(Icons.home_outlined, 'nav_home'),
   _NavItem(Icons.map_outlined, 'nav_map'),
   _NavItem(Icons.chat_bubble_outline_rounded, 'nav_safety'),
   _NavItem(Icons.receipt_long_outlined, 'nav_activity'),
