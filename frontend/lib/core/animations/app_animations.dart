@@ -34,12 +34,6 @@ abstract final class AppCurves {
   static const Curve inOut = Curves.easeInOutSine;
 }
 
-/// `go_router` page with a subtle slide + fade (300 ms, ease-out).
-///
-/// [begin] is the slide start offset as a fraction of the screen — horizontal
-/// by default, pass `Offset(0, 0.1)` for a vertical entrance. Set
-/// [slide] to false for a pure cross-fade (used where `Hero` widgets already
-/// provide the continuity, e.g. between onboarding screens).
 CustomTransitionPage<void> buildIosPageTransition({
   required GoRouterState state,
   required Widget child,

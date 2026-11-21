@@ -671,7 +671,6 @@ abstract final class AppStrings {
     'call_mode': _k('Call mode', 'ទម្រង់ការហៅ'),
     'priority': _k('Priority', 'កម្រិតអាទិភាព'),
     'profile': _k('Profile', 'កម្រងព័ត៌មាន'),
-    'copy': _k('Copy', 'ចម្លង'),
   };
 
   /// Khmer numerals for `0-9` in Khmer mode (`012` → `០១២`); unchanged in

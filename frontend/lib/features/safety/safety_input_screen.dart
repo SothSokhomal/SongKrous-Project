@@ -179,7 +179,7 @@ class _SearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.85),
+        color: Colors.white.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
         boxShadow: const [
@@ -270,7 +270,7 @@ class _FilterPills extends ConsumerWidget {
         curve: AppCurves.out,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.blueDeep : Colors.white.withOpacity(0.85),
+          color: isSelected ? AppColors.blueDeep : Colors.white.withValues(alpha: 0.85),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? AppColors.blueDeep : AppColors.border,
@@ -278,7 +278,7 @@ class _FilterPills extends ConsumerWidget {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.blueDeep.withOpacity(0.2),
+                    color: AppColors.blueDeep.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -364,7 +364,7 @@ class _CategoryCard extends ConsumerWidget {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.slateLight.withOpacity(0.7),
+                        color: AppColors.slateLight.withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(

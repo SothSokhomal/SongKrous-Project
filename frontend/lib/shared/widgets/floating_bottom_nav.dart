@@ -8,10 +8,9 @@ import 'app_interactive.dart';
 import 'liquid_glass.dart';
 
 class _NavItem {
-  const _NavItem(this.icon, this.labelKey, {this.badge});
+  const _NavItem(this.icon, this.labelKey);
   final IconData icon;
   final String labelKey;
-  final String? badge;
 }
 
 const _items = [
@@ -100,9 +99,6 @@ class FloatingBottomNav extends ConsumerWidget {
                       child: _NavButton(
                         item: _items[i],
                         label: ref.tr(_items[i].labelKey),
-                        badge: _items[i].badge == null
-                            ? null
-                            : ref.tr(_items[i].badge!),
                         selected: i == currentIndex,
                         onTap: () => onTap(i),
                       ),
@@ -121,14 +117,12 @@ class _NavButton extends StatelessWidget {
   const _NavButton({
     required this.item,
     required this.label,
-    this.badge,
     required this.selected,
     required this.onTap,
   });
 
   final _NavItem item;
   final String label;
-  final String? badge;
   final bool selected;
   final VoidCallback onTap;
 
@@ -177,30 +171,6 @@ class _NavButton extends StatelessWidget {
                         ),
                       ),
                     ),
-                    // The SOS badge stays crisp (not scaled/lifted).
-                    if (badge != null)
-                      Positioned(
-                        top: -5,
-                        right: -10,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 1,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.red,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            badge!,
-                            style: const TextStyle(
-                              color: AppColors.white,
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
                 const SizedBox(height: 3),

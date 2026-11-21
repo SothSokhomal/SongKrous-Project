@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/animations/app_animations.dart';
 import '../../../core/constants/app_state.dart';
 import '../../../core/constants/facilities.dart';
 import '../../../core/constants/phnom_penh_data.dart';

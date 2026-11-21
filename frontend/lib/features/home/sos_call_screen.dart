@@ -301,14 +301,12 @@ class _ActionButton extends StatelessWidget {
     required this.label,
     required this.color,
     required this.onTap,
-    this.filled = false,
   });
 
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
-  final bool filled;
 
   @override
   Widget build(BuildContext context) {
@@ -316,13 +314,10 @@ class _ActionButton extends StatelessWidget {
       label: label,
       leadingIcon: icon,
       onPressed: onTap,
-      colors: filled
-          ? AppButtonColors.glassRed
-          : (color == AppColors.blue
-                ? AppButtonColors.glassFrostAccent(AppColors.blueDeep)
-                : AppButtonColors.glassFrost),
-      // The primary emergency number gets the strongest haptic.
-      haptic: filled ? AppHaptic.heavy : AppHaptic.medium,
+      colors: color == AppColors.blue
+          ? AppButtonColors.glassFrostAccent(AppColors.blueDeep)
+          : AppButtonColors.glassFrost,
+      haptic: AppHaptic.medium,
       semanticLabel: label,
     );
   }

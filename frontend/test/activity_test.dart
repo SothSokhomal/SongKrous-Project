@@ -7,9 +7,7 @@ import 'package:songkrous/core/router/app_router.dart';
 import 'package:songkrous/core/router/app_routes.dart';
 import 'package:songkrous/features/activity/activity_detail_screen.dart';
 import 'package:songkrous/features/activity/activity_screen.dart';
-import 'package:songkrous/features/activity/models/emergency_activity.dart';
 import 'package:songkrous/main.dart';
-import 'package:songkrous/shared/widgets/app_interactive.dart';
 
 Future<void> frames(WidgetTester tester, [int n = 8]) async {
   for (var i = 0; i < n; i++) {

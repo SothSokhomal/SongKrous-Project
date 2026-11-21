@@ -99,10 +99,10 @@ class _SafetyTipsScreenState extends ConsumerState<SafetyTipsScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: situation.iconBgColor.withOpacity(0.6),
+                        color: situation.iconBgColor.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: situation.iconColor.withOpacity(0.25),
+                          color: situation.iconColor.withValues(alpha: 0.25),
                         ),
                       ),
                       child: Row(
@@ -217,7 +217,7 @@ class _SafetyTipsScreenState extends ConsumerState<SafetyTipsScreen> {
                           ref.tr('red_cross_reference'),
                           textAlign: TextAlign.center,
                           style: text.labelSmall?.copyWith(
-                            color: AppColors.textSecondary.withOpacity(0.8),
+                            color: AppColors.textSecondary.withValues(alpha: 0.8),
                             fontStyle: FontStyle.italic,
                             height: 1.35,
                           ),
@@ -303,7 +303,7 @@ class _StepCard extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: isDone
                           ? const Color(0xFF16A34A)
-                          : Colors.white.withOpacity(0.8),
+                          : Colors.white.withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: isDone
@@ -356,7 +356,7 @@ class _StepCard extends ConsumerWidget {
             ref.tr(step.bodyKey),
             style: text.bodyMedium?.copyWith(
               color: isDone
-                  ? AppColors.textSecondary.withOpacity(0.7)
+                  ? AppColors.textSecondary.withValues(alpha: 0.7)
                   : AppColors.textSecondary,
               height: 1.45,
             ),

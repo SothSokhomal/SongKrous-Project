@@ -5,7 +5,6 @@ import 'package:songkrous/core/constants/app_state.dart';
 import 'package:songkrous/core/constants/app_strings.dart';
 import 'package:songkrous/core/router/app_router.dart';
 import 'package:songkrous/core/router/app_routes.dart';
-import 'package:songkrous/features/safety/safety_input_screen.dart';
 import 'package:songkrous/features/safety/safety_tips_screen.dart';
 import 'package:songkrous/features/safety/widgets/urgent_banner.dart';
 import 'package:songkrous/main.dart';

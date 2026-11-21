@@ -10,7 +10,6 @@ import '../../core/animations/pulsing_beacon.dart';
 import '../../core/animations/staggered_entrance.dart';
 import '../../core/constants/app_state.dart';
 import '../../core/constants/facilities.dart';
-import '../../core/constants/phnom_penh_data.dart';
 import '../../core/router/app_routes.dart';
 import '../../core/state/location_state.dart';
 import '../../core/state/map_state.dart';
@@ -54,10 +53,6 @@ class HomeSosScreen extends ConsumerWidget {
     // null → State A (clean map); a category → State B (sheet + route).
     ref.selectMapCategory(type);
     context.go(AppRoutes.map);
-  }
-
-  void _sos(BuildContext context, WidgetRef ref, Facility? facility) {
-    context.push(AppRoutes.sosCall, extra: facility);
   }
 
   @override
