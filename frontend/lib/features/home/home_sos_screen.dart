@@ -117,13 +117,8 @@ class HomeSosScreen extends ConsumerWidget {
                     padding: const EdgeInsets.only(bottom: 14),
                     child: _CategoryCard(
                       type: FacilityType.values[i],
-                      nearest: rankFacilities(
-                        loc.latLng,
-                        type: FacilityType.values[i],
-                      ).firstOrNull,
                       onTap: () =>
                           _openMap(context, ref, FacilityType.values[i]),
-                      onSos: (f) => _sos(context, ref, f),
                     ),
                   ),
                 ),
@@ -148,7 +143,7 @@ class _TopBar extends ConsumerWidget {
     final color = gpsActive ? AppColors.blueDeep : AppColors.red;
     return Row(
       children: [
-        Expanded(
+        Flexible(
           child: Text(
             ref.tr('app_name'),
             maxLines: 1,
@@ -162,61 +157,57 @@ class _TopBar extends ConsumerWidget {
         ),
         const SizedBox(width: 6),
         // GPS status: frosted glass pill with a live green beacon.
-        Flexible(
-          child: Semantics(
-            button: true,
-            child: AppPressable(
-              onTap: onGpsTap,
-              haptic: AppHaptic.selection,
-              builder: (context, hovered, pressed) => AnimatedScale(
-                duration: const Duration(milliseconds: 120),
-                curve: AppCurves.out,
-                scale: pressed ? 0.95 : 1.0,
-                child: LiquidGlassContainer(
-                  radius: 16,
-                  useBlur: false,
-                  hovered: hovered,
-                  pressed: pressed,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 7,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (gpsActive)
-                        const LiveBeacon(color: AppColors.success, size: 8)
-                      else
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.red,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          ref.tr(gpsActive ? 'gps_active' : 'gps_off'),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: color,
-                            fontFamilyFallback: const ['Noto Sans Khmer'],
-                          ),
+        Semantics(
+          button: true,
+          child: AppPressable(
+            onTap: onGpsTap,
+            haptic: AppHaptic.selection,
+            builder: (context, hovered, pressed) => AnimatedScale(
+              duration: const Duration(milliseconds: 120),
+              curve: AppCurves.out,
+              scale: pressed ? 0.95 : 1.0,
+              child: LiquidGlassContainer(
+                radius: 16,
+                useBlur: false,
+                hovered: hovered,
+                pressed: pressed,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (gpsActive)
+                      const LiveBeacon(color: AppColors.success, size: 8)
+                    else
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: AppColors.red,
+                          shape: BoxShape.circle,
                         ),
                       ),
-                    ],
-                  ),
+                    const SizedBox(width: 6),
+                    Text(
+                      ref.tr(gpsActive ? 'gps_active' : 'gps_off'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: color,
+                        fontFamilyFallback: const ['Noto Sans Khmer'],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
         ),
-        const SizedBox(width: 6),
+        const Spacer(),
         const LanguageCompactToggle(),
       ],
     );
@@ -499,18 +490,11 @@ class _CategoryStyle {
 class _CategoryCard extends ConsumerWidget {
   const _CategoryCard({
     required this.type,
-    required this.nearest,
     required this.onTap,
-    required this.onSos,
   });
 
   final FacilityType type;
-
-  /// Closest facility of this type. Not shown — only used to start the SOS
-  /// call for the right place.
-  final RankedFacility? nearest;
   final VoidCallback onTap;
-  final ValueChanged<Facility?> onSos;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -627,83 +611,10 @@ class _CategoryCard extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  _ArrowButton(
-                    chip: style.chip,
-                    arrow: style.arrow,
-                    tooltip: ref.tr('sos_shortcut'),
-                    label: '${ref.tr('sos_shortcut')} $title',
-                    onTap: () => onSos(nearest?.facility),
-                  ),
                 ],
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// 42 px tinted circle with an arrow that nudges 4 px right on hover; opens
-/// the SOS screen for the nearest facility of this category.
-class _ArrowButton extends StatelessWidget {
-  const _ArrowButton({
-    required this.chip,
-    required this.arrow,
-    required this.label,
-    required this.tooltip,
-    required this.onTap,
-  });
-
-  final Color chip;
-  final Color arrow;
-  final String label;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: Semantics(
-        button: true,
-        label: label,
-        child: AppPressable(
-          onTap: onTap,
-          haptic: AppHaptic.medium,
-          builder: (context, hovered, pressed) => AnimatedScale(
-            duration: const Duration(milliseconds: 130),
-            curve: AppCurves.out,
-            scale: pressed
-                ? 0.90
-                : hovered
-                ? 1.08
-                : 1.0,
-            child: Container(
-              width: 42,
-              height: 42,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: chip,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.85),
-                  width: 1.2,
-                ),
-              ),
-              child: AnimatedSlide(
-                duration: const Duration(milliseconds: 130),
-                curve: AppCurves.out,
-                offset: Offset(hovered ? 4 / 22 : 0, 0),
-                child: Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 22,
-                  color: arrow,
-                ),
-              ),
-            ),
-          ),
         ),
       ),
     );

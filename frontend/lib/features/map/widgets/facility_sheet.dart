@@ -35,6 +35,7 @@ class NearbySheet extends ConsumerWidget {
     required this.onCategory,
     required this.onClose,
     required this.onSelect,
+    this.onDirection,
     required this.onCall,
   });
 
@@ -55,6 +56,7 @@ class NearbySheet extends ConsumerWidget {
   final ValueChanged<EmergencyCategory?> onCategory;
   final VoidCallback onClose;
   final ValueChanged<Facility> onSelect;
+  final ValueChanged<Facility>? onDirection;
   final ValueChanged<Facility> onCall;
 
   String _title(WidgetRef ref) => switch (category) {
@@ -149,6 +151,7 @@ class NearbySheet extends ConsumerWidget {
                             selectedId: selectedId,
                             rowKeys: rowKeys,
                             onSelect: onSelect,
+                            onDirection: onDirection,
                             onCall: onCall,
                           ),
                         ),
@@ -384,6 +387,7 @@ class _Rows extends StatelessWidget {
     required this.selectedId,
     required this.rowKeys,
     required this.onSelect,
+    this.onDirection,
     required this.onCall,
   });
 
@@ -391,6 +395,7 @@ class _Rows extends StatelessWidget {
   final String? selectedId;
   final Map<String, GlobalKey> rowKeys;
   final ValueChanged<Facility> onSelect;
+  final ValueChanged<Facility>? onDirection;
   final ValueChanged<Facility> onCall;
 
   @override
@@ -417,6 +422,9 @@ class _Rows extends StatelessWidget {
                     ranked: results[i],
                     selected: results[i].facility.id == selectedId,
                     onSelect: () => onSelect(results[i].facility),
+                    onDirection: onDirection != null
+                        ? () => onDirection!(results[i].facility)
+                        : null,
                     onCall: () => onCall(results[i].facility),
                   ),
                 ),
@@ -529,13 +537,15 @@ class _FacilityRow extends ConsumerWidget {
     required this.ranked,
     required this.selected,
     required this.onSelect,
-    required this.onCall,
+    this.onDirection,
+    this.onCall,
   });
 
   final RankedFacility ranked;
   final bool selected;
   final VoidCallback onSelect;
-  final VoidCallback onCall;
+  final VoidCallback? onDirection;
+  final VoidCallback? onCall;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -557,7 +567,7 @@ class _FacilityRow extends ConsumerWidget {
       onTap: onSelect,
       semanticLabel: f.name(lang),
       radius: 16,
-      padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       haptic: AppHaptic.selection,
       // Soft tinted selection (`#EFF6FF` police, `#FEF2F2` hospital/fire).
       surface: Colors.transparent,
@@ -581,7 +591,7 @@ class _FacilityRow extends ConsumerWidget {
             ),
             child: Icon(facilityIcon(f.type), color: color, size: 22),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -628,25 +638,37 @@ class _FacilityRow extends ConsumerWidget {
               ],
             ),
           ),
-          // The round call button reacts on its own: 1.08 hover, 0.90 press.
-          AppScaleButton(
-            tooltip: ref.tr('call'),
-            semanticLabel: '${ref.tr('call')} ${f.name(lang)}',
-            onTap: onCall,
-            hoverScale: 1.08,
-            pressScale: 0.90,
-            haptic: AppHaptic.medium,
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              child: const Icon(
-                Icons.call_rounded,
-                size: 22,
-                color: AppColors.white,
+          if (selected && f.type != FacilityType.fire) ...[
+            const SizedBox(width: 8),
+            AppScaleButton(
+              tooltip: ref.tr('directions'),
+              semanticLabel: '${ref.tr('directions')} ${f.name(lang)}',
+              onTap: onDirection,
+              hoverScale: 1.08,
+              pressScale: 0.90,
+              haptic: AppHaptic.medium,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.35),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.near_me_rounded,
+                  size: 20,
+                  color: AppColors.white,
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

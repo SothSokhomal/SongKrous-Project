@@ -720,15 +720,8 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
             child: NavInfoPill(
               target: sel,
               navigating: navigating,
-              onPrimary: () {
-                if (navigating) {
-                  _call(sel.facility);
-                } else {
-                  setState(() => _navigating = true);
-                }
-              },
-              onDetails: () =>
-                  context.push(AppRoutes.sosCall, extra: sel.facility),
+              onPrimary: () => _call(sel.facility),
+              onDetails: () => _call(sel.facility),
             ),
             builder: (context, extent, pill) {
               final e = math.max(extent, _minSize);
@@ -771,6 +764,10 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
                   onCategory: (c) => ref.selectMapCategory(c),
                   onClose: () => ref.selectMapCategory(null),
                   onSelect: _selectFromSheet,
+                  onDirection: (f) {
+                    _selectFromSheet(f);
+                    setState(() => _navigating = true);
+                  },
                   onCall: _call,
                 );
               },

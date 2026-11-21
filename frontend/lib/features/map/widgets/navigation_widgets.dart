@@ -29,77 +29,19 @@ class NavInfoPill extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final f = target.facility;
-    final lang = ref.watch(langProvider);
-    final text = Theme.of(context).textTheme;
-
-    // Floating route card: frosted glass refracting the map underneath.
-    return LiquidGlassContainer(
-      radius: 32,
-      sigma: 20,
-      padding: const EdgeInsets.fromLTRB(14, 8, 8, 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Semantics(
-              button: true,
-              label: '${ref.tr('details')}: ${f.name(lang)}',
-              child: AppPressable(
-                onTap: onDetails,
-                haptic: AppHaptic.selection,
-                builder: (context, hovered, pressed) => AnimatedOpacity(
-                  duration: const Duration(milliseconds: 100),
-                  opacity: pressed ? 0.55 : 1.0,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Name underlines on hover: it opens the details screen.
-                      AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 130),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: (text.titleMedium ?? const TextStyle()).copyWith(
-                          decoration: hovered
-                              ? TextDecoration.underline
-                              : TextDecoration.none,
-                        ),
-                        child: Text(f.name(lang)),
-                      ),
-                      AnimatedSwitcher(
-                        duration: AppDurations.fast,
-                        child: Text(
-                          target.pillSummary(lang),
-                          key: ValueKey(target.pillSummary(lang)),
-                          style: text.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          AppInteractiveButton(
-            height: 44,
-            expand: false,
-            fontSize: 13,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            leadingIcon: navigating
-                ? Icons.call_rounded
-                : Icons.navigation_rounded,
-            label: ref.tr(navigating ? 'call_now' : 'start_route'),
-            // Red for hospital/fire, deep blue for police.
-            colors: f.type == FacilityType.police
-                ? AppButtonColors.glassBlue
-                : AppButtonColors.glassRed,
-            haptic: navigating ? AppHaptic.medium : AppHaptic.light,
-            onPressed: onPrimary,
-          ),
-        ],
-      ),
+    return AppInteractiveButton(
+      height: 52,
+      expand: true,
+      fontSize: 15,
+      leadingIcon: navigating
+          ? Icons.call_rounded
+          : Icons.emergency_rounded,
+      label: ref.tr(navigating ? 'call_now' : 'trigger_sos'),
+      colors: f.type == FacilityType.police
+          ? AppButtonColors.glassBlue
+          : AppButtonColors.danger,
+      haptic: AppHaptic.heavy,
+      onPressed: onPrimary,
     );
   }
 }

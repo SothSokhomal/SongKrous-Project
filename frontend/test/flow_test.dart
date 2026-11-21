@@ -17,6 +17,9 @@ Future<void> frames(WidgetTester tester, [int n = 8]) async {
   }
 }
 
+String path() =>
+    appRouter.routerDelegate.currentConfiguration.last.matchedLocation;
+
 Future<ProviderContainer> boot(WidgetTester tester, String route) async {
   tester.view.physicalSize = const Size(1170, 2532); // 390 x 844 @3x
   tester.view.devicePixelRatio = 3;
@@ -47,7 +50,7 @@ void main() {
       expect(find.text('Search hospital, police, fire...'), findsOneWidget);
       expect(find.text('Hospitals'), findsNothing); // category bar
       expect(find.text('Nearby Hospitals'), findsNothing); // sheet
-      expect(find.text('Start Route'), findsNothing);
+      expect(find.text('EMERGENCY SOS'), findsOneWidget);
       expect(find.text('Hospital'), findsWidgets); // target pin labels
       expect(tester.takeException(), isNull);
     },
@@ -65,7 +68,7 @@ void main() {
     expect(find.text('Nearby Hospitals'), findsOneWidget);
     expect(find.text('Closest first'), findsOneWidget);
     expect(find.text('Hospitals'), findsOneWidget); // category bar tab
-    expect(find.text('Start Route'), findsOneWidget);
+    expect(find.text('EMERGENCY SOS'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -79,39 +82,31 @@ void main() {
 
     expect(c.read(selectedMapTargetProvider), isNotNull);
     expect(find.text('Nearby Police Stations'), findsOneWidget);
-    // Pill + sheet row both show the mock closest-first station.
-    expect(find.text('Phnom Penh Police Station (St. 598)'), findsNWidgets(2));
-    expect(find.text('2 min • 0.4 km'), findsOneWidget); // nav pill
+    // Sheet row shows the mock closest-first station.
+    expect(find.text('Phnom Penh Police Station (St. 598)'), findsOneWidget);
     expect(find.text('0.4 km · 2 min'), findsOneWidget); // sheet row
-    expect(find.text('Start Route'), findsOneWidget);
+    expect(find.text('EMERGENCY SOS'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
   testWidgets(
-    'row tap re-routes; Start Route shows the banner; Exit hides it',
+    'row tap re-routes; SOS button directly calls; directions button on hospital but not fire',
     (tester) async {
       await boot(tester, AppRoutes.home);
       await tester.tap(find.text('Hospital'));
       await frames(tester, 12);
-      expect(find.text('4 min • 1.2 km'), findsOneWidget); // Calmette (nearest)
+      expect(find.text('EMERGENCY SOS'), findsOneWidget);
+      expect(find.byTooltip('Directions'), findsOneWidget);
 
-      // Tapping another row updates the route target + pill.
+      // Tapping another row updates the route target.
       await tester.tap(find.text('Sunrise Japan Hospital'));
       await frames(tester);
-      expect(find.text('8 min • 2.9 km'), findsOneWidget);
+      expect(find.byTooltip('Directions'), findsOneWidget);
 
-      await tester.tap(find.text('Start Route'));
-      await frames(tester);
-      expect(find.textContaining('Head '), findsOneWidget);
-      expect(find.text('Exit'), findsOneWidget);
-      expect(find.text('Search hospital, police, fire...'), findsNothing);
-      expect(find.text('Call Now'), findsOneWidget);
-
-      await tester.tap(find.text('Exit'));
-      await frames(tester);
-      expect(find.text('Exit'), findsNothing);
-      expect(find.text('Search hospital, police, fire...'), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('EMERGENCY SOS'));
+      await frames(tester, 12);
+      expect(path(), startsWith('/calling'));
+      expect(find.text('Sunrise Japan Hospital'), findsWidgets);
     },
   );
 
@@ -126,12 +121,13 @@ void main() {
     await frames(tester);
     expect(find.text('Nearby Fire Stations'), findsOneWidget);
     expect(find.textContaining('FIRE · 118'), findsWidgets);
+    expect(find.byTooltip('Directions'), findsNothing);
 
     await tester.tap(find.text('All'));
     await frames(tester, 12);
     expect(c.read(selectedMapTargetProvider), isNull);
     expect(find.text('Nearby Fire Stations'), findsNothing);
-    expect(find.text('Start Route'), findsNothing);
+    expect(find.text('EMERGENCY SOS'), findsOneWidget);
 
     // ✕ on the sheet header does the same.
     await tester.tap(find.text('Hospital').first); // pin
@@ -144,17 +140,17 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('round call button opens the outgoing call screen', (
+  testWidgets('suggestion hospital row tap selects the facility', (
     tester,
   ) async {
-    await boot(tester, AppRoutes.home);
+    final c = await boot(tester, AppRoutes.home);
     await tester.tap(find.text('Hospital'));
     await frames(tester, 12);
 
-    await tester.tap(find.byTooltip('Call').first);
+    expect(find.byTooltip('Call'), findsNothing);
+    await tester.tap(find.text('Sunrise Japan Hospital'));
     await frames(tester);
-    expect(find.text('calling'), findsOneWidget);
-    expect(find.text('Calmette Hospital'), findsOneWidget);
+    expect(c.read(selectedFacilityProvider), 'sunrise_japan');
   });
 
   testWidgets('View Map and the bottom-bar Map tab open the clean State A', (
@@ -197,7 +193,7 @@ void main() {
     // sheet scrolls the routed row into view, which may move it out of the
     // build range — layout, not behaviour.)
     expect(c.read(selectedMapTargetProvider), FacilityType.fire);
-    expect(find.text('13 min • 4.5 km'), findsOneWidget);
+    expect(c.read(selectedFacilityProvider), 'koh_pich_fire');
     // The routed (3rd, farthest) row is scrolled into view, not clipped away.
     expect(find.text('4.5 km · 13 min').hitTestable(), findsOneWidget);
     expect(tester.takeException(), isNull);

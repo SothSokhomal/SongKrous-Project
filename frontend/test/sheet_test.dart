@@ -115,7 +115,7 @@ void main() {
     expect(sheetRect(tester).top, greaterThan(kH * 0.72));
     // Pill still floats just above the (now lower) sheet.
     expect(sheetRect(tester).top - pillRect(tester).bottom, closeTo(12, 1));
-    expect(find.text('Start Route').hitTestable(), findsOneWidget);
+    expect(find.text('EMERGENCY SOS').hitTestable(), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -128,7 +128,7 @@ void main() {
 
     expect(sheetRect(tester).top, lessThan(kH * 0.30));
     expect(find.text('Calmette Hospital'), findsWidgets);
-    expect(find.text('Start Route').hitTestable(), findsNothing); // faded out
+    expect(find.text('EMERGENCY SOS').hitTestable(), findsNothing); // faded out
     expect(tester.takeException(), isNull);
   });
 

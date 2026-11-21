@@ -620,17 +620,13 @@ void main() {
         await frames(tester, 14);
         expect(haptics, contains('lightImpact'));
 
-        // State B: the round call button.
-        final call = find.byTooltip('Call').first;
-        final scale = find
-            .descendant(of: call, matching: find.byType(AnimatedScale))
-            .first;
-        await g.moveTo(tester.getCenter(call));
+        // State B: suggestion row tap selects it; no round call button.
+        expect(find.byTooltip('Call'), findsNothing);
+        final row = find.text('Calmette Hospital').first;
+        await g.moveTo(tester.getCenter(row));
         await tester.pump(const Duration(milliseconds: 250));
-        expect(tester.widget<AnimatedScale>(scale).scale, 1.08);
-        await g.down(tester.getCenter(call));
+        await g.down(tester.getCenter(row));
         await tester.pump(const Duration(milliseconds: 16));
-        expect(tester.widget<AnimatedScale>(scale).scale, 0.90);
         await g.up();
       },
     );

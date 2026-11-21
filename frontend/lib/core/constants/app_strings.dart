@@ -296,6 +296,7 @@ abstract final class AppStrings {
     'send_voice': _k('Send voice message', 'ផ្ញើសារសំឡេង'),
     'photo_from_library': _k('Photo library', 'បណ្ណាល័យរូបថត'),
     'typing': _k('Dispatch is typing', 'មជ្ឈមណ្ឌលកំពុងវាយ'),
+    'directions': _k('Directions', 'ទិសដៅ'),
     'start_route': _k('Start Route', 'ចាប់ផ្តើមដំណើរ'),
     'call_now': _k('Call Now', 'ហៅឥឡូវនេះ'),
     'exit': _k('Exit', 'ចាកចេញ'),

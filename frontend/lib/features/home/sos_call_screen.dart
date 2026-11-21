@@ -121,24 +121,11 @@ class SosCallScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    StaggeredEntrance(
-                      animation: animation,
-                      begin: 0.2,
-                      end: 0.8,
-                      child: _ActionButton(
-                        icon: Icons.call_rounded,
-                        label: ref.num(f.phone),
-                        filled: true,
-                        color: AppColors.red,
-                        onTap: () => _call(context, ref, f.phone),
-                      ),
-                    ),
                     if (f.altPhone != null) ...[
-                      const SizedBox(height: 12),
                       StaggeredEntrance(
                         animation: animation,
-                        begin: 0.3,
-                        end: 0.9,
+                        begin: 0.2,
+                        end: 0.8,
                         child: _ActionButton(
                           icon: Icons.call_rounded,
                           label:
@@ -147,12 +134,12 @@ class SosCallScreen extends ConsumerWidget {
                           onTap: () => _call(context, ref, f.altPhone!),
                         ),
                       ),
+                      const SizedBox(height: 12),
                     ],
-                    const SizedBox(height: 12),
                     StaggeredEntrance(
                       animation: animation,
-                      begin: 0.4,
-                      end: 1.0,
+                      begin: f.altPhone != null ? 0.3 : 0.2,
+                      end: f.altPhone != null ? 0.9 : 0.8,
                       child: _ActionButton(
                         icon: Icons.chat_bubble_outline_rounded,
                         label: ref.tr('send_message'),

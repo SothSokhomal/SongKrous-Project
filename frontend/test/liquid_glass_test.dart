@@ -8,6 +8,8 @@ import 'package:songkrous/core/constants/app_state.dart';
 import 'package:songkrous/core/constants/app_strings.dart';
 import 'package:songkrous/core/router/app_router.dart';
 import 'package:songkrous/core/router/app_routes.dart';
+import 'package:songkrous/core/constants/facilities.dart';
+import 'package:songkrous/core/state/map_state.dart';
 import 'package:songkrous/core/theme/app_colors.dart';
 import 'package:songkrous/main.dart';
 import 'package:songkrous/shared/widgets/app_interactive.dart';
@@ -214,7 +216,7 @@ void main() {
         tester.getSize(find.byType(EmergencyEmblem).first),
         const Size(72, 72),
       );
-      expect(find.byIcon(Icons.arrow_forward_rounded), findsNWidgets(3));
+      expect(find.byIcon(Icons.arrow_forward_rounded), findsNothing);
       expect(find.textContaining('YOUR LOCATION'), findsOneWidget);
     });
 
@@ -244,33 +246,14 @@ void main() {
       expect(find.text('១១.៥៨១៣° ជើង, ១០៤.៩១៥៨° កើត'), findsNothing);
     });
 
-    testWidgets('arrow nudges on hover and opens the SOS screen', (
+    testWidgets('category card tap navigates to map for that category', (
       tester,
     ) async {
-      await boot(tester, AppRoutes.home);
-      final chevron = find.byIcon(Icons.arrow_forward_rounded).first;
-      final slide = find.ancestor(
-        of: chevron,
-        matching: find.byType(AnimatedSlide),
-      );
-      expect(tester.widget<AnimatedSlide>(slide).offset, Offset.zero);
-
-      final g = await tester.createGesture(kind: PointerDeviceKind.mouse);
-      await g.addPointer(location: const Offset(-50, -50));
-      addTearDown(g.removePointer);
-      await tester.pump();
-      await g.moveTo(tester.getCenter(chevron));
-      await tester.pump(const Duration(milliseconds: 200));
-      expect(
-        tester.widget<AnimatedSlide>(slide).offset.dx,
-        closeTo(4 / 22, 1e-9),
-      );
-
-      await g.down(tester.getCenter(chevron));
-      await g.up();
-      await frames(tester, 8);
-      expect(find.text('SOS'), findsWidgets); // SOS Direct Call screen
-      expect(find.text('+855 23 426 948'), findsWidgets);
+      final c = await boot(tester, AppRoutes.home);
+      await tester.tap(find.text('Hospital'));
+      await frames(tester, 12);
+      expect(c.read(selectedMapTargetProvider), FacilityType.hospital);
+      expect(find.text('Nearby Hospitals'), findsOneWidget);
     });
 
     testWidgets('no BackdropFilter inside the scrolling list (60 fps rule)', (
@@ -328,7 +311,7 @@ void main() {
   });
 
   group('screens use the glass system', () {
-    testWidgets('Frame 1: red glass call button, frosted secondary buttons', (
+    testWidgets('Frame 1: frosted secondary buttons and address box', (
       tester,
     ) async {
       await boot(tester, AppRoutes.sosCall);
@@ -336,7 +319,7 @@ void main() {
           .widgetList<LiquidGlassContainer>(find.byType(LiquidGlassContainer))
           .map((g) => g.tint)
           .toSet();
-      expect(tints, containsAll([LiquidTint.red, LiquidTint.frost]));
+      expect(tints, contains(LiquidTint.frost));
     });
 
     testWidgets('Outgoing call: dark smoked glass + glossy red hang-up', (
