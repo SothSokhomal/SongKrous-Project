@@ -319,6 +319,232 @@ abstract final class AppStrings {
 
     // ── Safety ───────────────────────────────────────────────────────
     'safety': _k('Safety', 'សុវត្ថិភាព'),
+    'safety_title': _k('First Aid & Safety', 'ការសង្គ្រោះបឋម និងសុវត្ថិភាព'),
+    'safety_hub_sub': _k(
+      'Tap any emergency guide for immediate step-by-step instructions.',
+      'ចុចលើការណែនាំសង្គ្រោះបន្ទាន់ណាមួយ សម្រាប់ជំហានអនុវត្តភ្លាមៗ។',
+    ),
+    'safety_search_hint': _k('Search first aid guides...', 'ស្វែងរកការណែនាំសង្គ្រោះបឋម...'),
+    'filter_all': _k('All', 'ទាំងអស់'),
+    'filter_medical': _k('Medical', 'វេជ្ជសាស្ត្រ'),
+    'filter_trauma': _k('Trauma', 'របួសធ្ងន់'),
+    'filter_rescue': _k('Rescue', 'ជួយសង្គ្រោះ'),
+    'filter_no_results': _k('No matching guides found', 'រកមិនឃើញការណែនាំដែលត្រូវគ្នាទេ'),
+    'step_progress': _k('{done} of {total} steps completed', 'បានបំពេញ {done} នៃ {total} ជំហាន'),
+    'step_count_label': _k('{n} Steps', '{n} ជំហាន'),
+    'step_n_label': _k('STEP {n}', 'ជំហាន {n}'),
+    'red_cross_reference': _k(
+      'Reference: Standard Red Cross First Aid & Adult CPR Guidelines',
+      'ប្រភព៖ គោលការណ៍ណែនាំសង្គ្រោះបឋម និង CPR របស់កាកបាទក្រហម',
+    ),
+    'call_emergency_now': _k('Call Emergency', 'ហៅសង្គ្រោះបន្ទាន់'),
+    'quick_call_ambulance': _k('Call 119 Ambulance', 'ហៅ ១១៩ រថយន្តសង្គ្រោះ'),
+    'quick_call_police': _k('Call 117 Police', 'ហៅ ១១៧ ប៉ូលិស'),
+    'quick_call_fire': _k('Call 118 Fire Service', 'ហៅ ១១៨ ពន្លត់អគ្គិភ័យ'),
+    'mark_done': _k('Completed', 'បានរួចរាល់'),
+
+    // Category 1: Bleeding Control
+    'cat_bleeding': _k('Bleeding Control', 'ការទប់ឈាមហូរ'),
+    'cat_bleeding_sub': _k(
+      'Direct pressure, wound care & tourniquets',
+      'សង្កត់ផ្ទាល់ ថែទាំរបួស និងខ្សែរឹតទប់ឈាម',
+    ),
+    'cat_bleeding_over': _k(
+      'Severe bleeding requires immediate, firm pressure to prevent life-threatening blood loss and shock.',
+      'ការហូរឈាមធ្ងន់ធ្ងរតម្រូវឱ្យមានការសង្កត់ជាបន្ទាន់ ដើម្បីការពារកុំឱ្យបាត់បង់ឈាម និងខ្យល់គរ។',
+    ),
+    'bleed_s1_t': _k('Ensure Scene Safety & Use PPE', 'ពិនិត្យសុវត្ថិភាពទីតាំង និងពាក់ស្រោមដៃ'),
+    'bleed_s1_b': _k(
+      'Assess the surroundings for hazards and put on disposable protective gloves, if available.',
+      'វាយតម្លៃជុំវិញរកមើលគ្រោះថ្នាក់ និងពាក់ស្រោមដៃការពារ ប្រសិនបើមាន។',
+    ),
+    'bleed_s2_t': _k('Call Emergency Services', 'ហៅសេវាសង្គ្រោះបន្ទាន់'),
+    'bleed_s2_b': _k(
+      'If bleeding is severe, immediately instruct a bystander to call local emergency medical services (119).',
+      'ប្រសិនបើហូរឈាមខ្លាំង សូមប្រាប់អ្នកនៅជិតឱ្យហៅសេវាសង្គ្រោះបន្ទាន់ (១១៩) ភ្លាមៗ។',
+    ),
+    'bleed_s3_t': _k('Apply Direct Pressure', 'សង្កត់ដោយផ្ទាល់លើមុខរបួស'),
+    'bleed_s3_b': _k(
+      'Place a clean cloth, sterile gauze, or bandage directly over the wound and apply firm, continuous pressure until the bleeding stops. Do not remove the cloth or dressing in direct contact with the wound.',
+      'ដាក់ក្រណាត់ស្អាត បង់រុំ ឬមារៈបង់រុំស្អាតពីលើមុខរបួស ហើយសង្កត់ឱ្យជាប់រហូតដល់ឈាមឈប់ហូរ។ កុំដកក្រណាត់ដែលប៉ះមុខរបួសចេញ។',
+    ),
+    'bleed_s4_t': _k('Apply a Tourniquet (If Necessary)', 'ប្រើខ្សែរឹតទប់ឈាម (បើចាំបាច់)'),
+    'bleed_s4_b': _k(
+      'For life-threatening bleeding from an arm or leg, apply a tourniquet if one is available and you are trained in its proper use. Continue monitoring and caring for the casualty until emergency responders arrive.',
+      'ចំពោះការហូរឈាមគំរាមកំហែងដល់អាយុជីវិតពីដៃ ឬជើង សូមប្រើខ្សែរឹតទប់ឈាម ប្រសិនបើមាន និងចេះប្រើប្រាស់ត្រឹមត្រូវ។ បន្តតាមដានរហូតដល់ក្រុមសង្គ្រោះមកដល់។',
+    ),
+
+    // Category 2: Adult CPR
+    'cat_cpr': _k('Adult CPR', 'ចលនាបេះដូង និងដង្ហើមសិប្បនិម្មិត (CPR)'),
+    'cat_cpr_sub': _k(
+      'Chest compressions & rescue breaths',
+      'ការសង្កត់ទ្រូង និងការផ្លុំខ្យល់ដង្ហើម',
+    ),
+    'cat_cpr_over': _k(
+      'CPR combines chest compressions and rescue breaths to maintain circulation and oxygenation for an individual who is unresponsive and not breathing normally.',
+      'CPR រួមបញ្ចូលការសង្កត់ទ្រូង និងការផ្លុំខ្យល់ ដើម្បីរក្សាចរន្តឈាម និងអុកស៊ីសែន សម្រាប់អ្នកដែលមិនដឹងខ្លួន និងមិនដកដង្ហើមធម្មតា។',
+    ),
+    'cpr_s1_t': _k('Verify Scene Safety', 'ពិនិត្យសុវត្ថិភាពទីតាំង'),
+    'cpr_s1_b': _k(
+      'Ensure the environment is safe before approaching the casualty.',
+      'ត្រូវប្រាកដថាបរិស្ថានជុំវិញមានសុវត្ថិភាព មុនពេលចូលទៅជិតជនរងគ្រោះ។',
+    ),
+    'cpr_s2_t': _k('Check Responsiveness & Breathing', 'ពិនិត្យការឆ្លើយតប និងការដកដង្ហើម'),
+    'cpr_s2_b': _k(
+      'Tap the person’s shoulder gently and shout to check for a response. Simultaneously assess breathing for no more than 10 seconds. Occasional gasping (agonal breaths) is not normal breathing.',
+      'ទះស្មារបស់ជនរងគ្រោះថ្នមៗ និងស្រែកសួរ។ ពិនិត្យការដកដង្ហើមមិនលើសពី ១០ វិនាទី។ ការដកដង្ហើមដង្ហក់ មិនមែនជាការដកដង្ហើមធម្មតាទេ។',
+    ),
+    'cpr_s3_t': _k('Activate Emergency Response & Retrieve AED', 'ហៅសង្គ្រោះបន្ទាន់ និងរកម៉ាស៊ីន AED'),
+    'cpr_s3_b': _k(
+      'Call emergency medical services (119) immediately, place your phone on speaker mode, and ask a bystander to locate and bring an Automated External Defibrillator (AED).',
+      'ហៅសេវាសង្គ្រោះបន្ទាន់ (១១៩) ភ្លាមៗ បើកឧបករណ៍បំពងសំឡេងទូរសព្ទ ហើយប្រាប់អ្នកនៅជិតឱ្យរកម៉ាស៊ីន AED។',
+    ),
+    'cpr_s4_t': _k('Position the Casualty & Hands', 'រៀបចំទីតាំងជនរងគ្រោះ និងដៃ'),
+    'cpr_s4_b': _k(
+      'Place the individual flat on their back on a firm, level surface. Place the heel of one hand in the center of the chest (lower half of the breastbone) and place your other hand directly on top, interlocking your fingers.',
+      'ដាក់ជនរងគ្រោះឱ្យដេកផ្ងារលើផ្ទៃរាបស្មើ និងរឹងមាំ។ ដាក់បាតដៃម្ខាងនៅចំកណ្តាលទ្រូង ហើយដាក់ដៃម្ខាងទៀតពីលើ ដោយត្របាក់ម្រាមដៃចូលគ្នា។',
+    ),
+    'cpr_s5_t': _k('Deliver 30 Chest Compressions', 'សង្កត់ទ្រូង ៣០ ដង'),
+    'cpr_s5_b': _k(
+      'Perform 30 chest compressions at a rate of 100 to 120 compressions per minute, pushing to a depth of approximately 5 to 6 cm (2 to 2.4 inches). Allow the chest to fully recoil after each compression.',
+      'សង្កត់ទ្រូង ៣០ ដង ក្នុងល្បឿនពី ១០០ ទៅ ១២០ ដងក្នុងមួយនាទី ជម្រៅប្រហែល ៥ ទៅ ៦ ស.ម។ ទុកឱ្យទ្រូងងើបឡើងវិញពេញលេញបន្ទាប់ពីការសង្កត់នីមួយៗ។',
+    ),
+    'cpr_s6_t': _k('Deliver 2 Rescue Breaths', 'ផ្លុំខ្យល់ដង្ហើម ២ ដង'),
+    'cpr_s6_b': _k(
+      'If you are trained and able, open the airway using the head-tilt, chin-lift maneuver and deliver 2 rescue breaths into the mouth, watching for visible chest rise. If you are untrained or unable to give rescue breaths, perform Hands-Only CPR (continuous chest compressions).',
+      'ប្រសិនបើអ្នកបានទទួលការបណ្តុះបណ្តាល សូមងើយក្បាល និងលើកចង្កាជនរងគ្រោះ រួចផ្លុំខ្យល់ ២ ដង ដោយសង្កេតមើលទ្រូងឡើង។ ប្រសិនបើមិនចេះផ្លុំ សូមធ្វើតែការសង្កត់ទ្រូងជាប់រហូត។',
+    ),
+    'cpr_s7_t': _k('Continue Cycles & Use AED', 'បន្តវដ្ត CPR និងប្រើម៉ាស៊ីន AED'),
+    'cpr_s7_b': _k(
+      'Continue CPR cycles of 30 compressions and 2 breaths until the person shows signs of life, an AED arrives and is ready to analyze, or professional emergency responders take over.',
+      'បន្តវដ្ត ៣០ ដង និងផ្លុំ ២ ដង រហូតដល់ជនរងគ្រោះដឹងខ្លួន ម៉ាស៊ីន AED មកដល់ ឬក្រុមសង្គ្រោះបន្ទាន់មកទទួលខុសត្រូវ។',
+    ),
+
+    // Category 3: Drowning
+    'cat_drowning': _k('Drowning', 'ការលង់ទឹក'),
+    'cat_drowning_sub': _k(
+      'Water rescue, resuscitation & recovery',
+      'ការជួយសង្គ្រោះពីទឹក ការសង្គ្រោះបឋម និងការថែទាំ',
+    ),
+    'cat_drowning_over': _k(
+      'Swift action is vital in drowning cases. Prioritize rescuer safety and immediately restore oxygenation to the brain.',
+      'សកម្មភាពរហ័សមានសារៈសំខាន់ណាស់ក្នុងការលង់ទឹក។ គិតគូរពីសុវត្ថិភាពអ្នកជួយជាចម្បង និងផ្តល់អុកស៊ីសែនដល់ខួរក្បាលជាបន្ទាន់។',
+    ),
+    'drown_s1_t': _k('Ensure Scene Safety & Call for Help', 'ពិនិត្យសុវត្ថិភាព និងហៅរកជំនួយ'),
+    'drown_s1_b': _k(
+      'Call emergency services immediately. Do not enter dangerous water unless trained; throw a flotation device or extend a branch/pole if possible.',
+      'ហៅសេវាសង្គ្រោះបន្ទាន់ភ្លាមៗ។ កុំចុះទឹកគ្រោះថ្នាក់បើគ្មានការបណ្តុះបណ្តាល ចូរគប់ពោង ឬលយឈើ/បង្គោលឱ្យតោង។',
+    ),
+    'drown_s2_t': _k('Remove from Water Safely', 'ស្រង់ចេញពីទឹកដោយសុវត្ថិភាព'),
+    'drown_s2_b': _k(
+      'Bring the person to a dry, safe, flat surface as quickly as possible without endangering yourself.',
+      'នាំជនរងគ្រោះទៅកាន់កន្លែងស្ងួត មានសុវត្ថិភាព និងរាបស្មើឱ្យបានលឿនតាមដែលអាចធ្វើទៅបាន។',
+    ),
+    'drown_s3_t': _k('Check Responsiveness & Breathing', 'ពិនិត្យការដឹងខ្លួន និងការដកដង្ហើម'),
+    'drown_s3_b': _k(
+      'Check if responsive and assess breathing for no more than 10 seconds. If not breathing normally, begin resuscitation immediately.',
+      'ពិនិត្យការឆ្លើយតប និងដង្ហើមមិនលើសពី ១០ វិនាទី។ ប្រសិនបើមិនដកដង្ហើមធម្មតា ចាប់ផ្តើមសង្គ្រោះបន្ទាន់ភ្លាមៗ។',
+    ),
+    'drown_s4_t': _k('Deliver 5 Initial Rescue Breaths & CPR', 'ផ្លុំខ្យល់ ៥ ដងដំបូង និងធ្វើ CPR'),
+    'drown_s4_b': _k(
+      'For drowning casualties, open the airway and give 5 initial rescue breaths. If unresponsive, immediately begin 30 chest compressions followed by 2 rescue breaths.',
+      'សម្រាប់ជនរងគ្រោះលង់ទឹក សូមបើកផ្លូវដង្ហើម ហើយផ្លុំខ្យល់ ៥ ដងដំបូង។ ប្រសិនបើនៅមិនដឹងខ្លួន ចាប់ផ្តើមសង្កត់ទ្រូង ៣០ ដង និងផ្លុំ ២ ដង។',
+    ),
+    'drown_s5_t': _k('Continue CPR & Prevent Hypothermia', 'បន្ត CPR និងការពារការចុះត្រជាក់ខ្លាំង'),
+    'drown_s5_b': _k(
+      'Continue CPR cycles until professional help arrives or the person revives. Remove wet clothes and cover with dry blankets.',
+      'បន្តវដ្ត CPR រហូតដល់ជំនួយមកដល់ ឬជនរងគ្រោះដឹងខ្លួន។ ដោះសំលៀកបំពាក់សើមចេញ ហើយដណ្តប់ភួយស្ងួត។',
+    ),
+
+    // Category 4: Fainting
+    'cat_fainting': _k('Fainting (Syncope)', 'ការសន្លប់ / ខ្យល់គរ'),
+    'cat_fainting_sub': _k(
+      'Positioning, airflow & recovery care',
+      'ការតម្រង់ទីតាំង ខ្យល់អាកាស និងការថែទាំ',
+    ),
+    'cat_fainting_over': _k(
+      'Fainting is a temporary loss of consciousness caused by a brief drop in blood flow to the brain.',
+      'ការសន្លប់ ឬខ្យល់គរ គឺជាការបាត់បង់ស្មារតីបណ្តោះអាសន្ន ដែលបណ្តាលមកពីការថយចុះនៃលំហូរឈាមទៅកាន់ខួរក្បាល។',
+    ),
+    'faint_s1_t': _k('Position on Back & Elevate Legs', 'ឱ្យដេកផ្ងារ និងលើកជើងឡើង'),
+    'faint_s1_b': _k(
+      'Lay the person flat on their back and elevate legs about 12 inches (30 cm) to restore blood flow to the brain.',
+      'ឱ្យជនរងគ្រោះដេកផ្ងាររាបស្មើ ហើយលើកជើងឡើងប្រហែល ៣០ ស.ម ដើម្បីជួយឱ្យឈាមរត់ទៅខួរក្បាល។',
+    ),
+    'faint_s2_t': _k('Loosen Tight Clothing', 'បន្ធូរសម្លៀកបំពាក់តឹង'),
+    'faint_s2_b': _k(
+      'Loosen collars, belts, or tight waistbands to support normal breathing and blood circulation.',
+      'បន្ធូរកអាវ ខ្សែក្រវាត់ ឬសម្លៀកបំពាក់ដែលតឹង ដើម្បីជួយសម្រួលការដកដង្ហើម និងចរន្តឈាម។',
+    ),
+    'faint_s3_t': _k('Check Airway & Ensure Fresh Air', 'ពិនិត្យផ្លូវដង្ហើម និងផ្តល់ខ្យល់អាកាស'),
+    'faint_s3_b': _k(
+      'Ensure the airway remains open and clear. Fan the person or move them to a well-ventilated, shaded area.',
+      'ត្រូវប្រាកដថាផ្លូវដង្ហើមចំហ និងស្រឡះ។ បក់ផ្លិត ឬផ្លាស់ទីទៅកន្លែងដែលមានខ្យល់ចេញចូលល្អ និងម្លប់។',
+    ),
+    'faint_s4_t': _k('Check Responsiveness', 'ពិនិត្យការដឹងខ្លួន'),
+    'faint_s4_b': _k(
+      'If the person does not regain consciousness within 1 minute, immediately call emergency medical services (119).',
+      'ប្រសិនបើជនរងគ្រោះមិនដឹងខ្លួនឡើងវិញក្នុងរយៈពេល ១ នាទី សូមហៅសេវាសង្គ្រោះបន្ទាន់ (១១៩) ភ្លាមៗ។',
+    ),
+    'faint_s5_t': _k('Post-Fainting Recovery Care', 'ការថែទាំក្រោយដឹងខ្លួន'),
+    'faint_s5_b': _k(
+      'Keep the person lying down for several minutes after waking. Do not let them stand up rapidly. Offer sips of water only after they are fully alert.',
+      'ឱ្យជនរងគ្រោះដេកនៅស្ងៀមពីរបីនាទីបន្ទាប់ពីដឹងខ្លួន។ កុំឱ្យក្រោកឈរភ្លាមៗ។ ឱ្យផឹកទឹកតិចៗនៅពេលដឹងខ្លួនច្បាស់។',
+    ),
+
+    // Category 5: Fire / Smoke
+    'cat_fire_over': _k(
+      'In building fires, smoke and toxic fumes spread faster than flames. Immediate evacuation is paramount.',
+      'ក្នុងករណីអគ្គិភ័យ ផ្សែងពុលរាលដាលលឿនជាងភ្លើង។ ការជម្លៀសចេញភ្លាមៗជាអាទិភាពខ្ពស់បំផុត។',
+    ),
+    'fire_s1_t': _k('Evacuate Immediately', 'ជម្លៀសចេញជាបន្ទាន់'),
+    'fire_s1_b': _k(
+      'Leave the building immediately using the nearest marked exit or fire stairwell. Do not use elevators.',
+      'ចាកចេញពីអគារភ្លាមៗតាមច្រកចេញដែលជិតបំផុត ឬជណ្តើរភ្លើង។ កុំប្រើជណ្តើរយន្ត។',
+    ),
+    'fire_s2_t': _k('Stay Low Under Smoke', 'បន្ទាបខ្លួនក្រោមផ្សែង'),
+    'fire_s2_b': _k(
+      'Toxic smoke and heated gases rise. Crawl low under the smoke where the air is cleanest and coolest.',
+      'ផ្សែងពុល និងកម្តៅហុយឡើងលើ។ ចូរវារឱ្យទាបនៅក្រោមផ្សែង ដែលជាកន្លែងខ្យល់ស្អាត និងត្រជាក់ជាង។',
+    ),
+    'fire_s3_t': _k('Test Doors Before Opening', 'ស្ទាបទ្វារមុននឹងបើក'),
+    'fire_s3_b': _k(
+      'Feel the door handle with the back of your hand. If hot to the touch, do not open; seek an alternative escape route.',
+      'ស្ទាបដៃទ្វារដោយខ្នងដៃ។ បើក្តៅ កុំបើក ចូរស្វែងរកច្រកចេញផ្សេងទៀត។',
+    ),
+    'fire_s4_t': _k('Call Emergency Fire Service & Stay Outside', 'ហៅពន្លត់អគ្គិភ័យ និងនៅខាងក្រៅ'),
+    'fire_s4_b': _k(
+      'Once safely outside at a designated assembly area, call 118 immediately. Never re-enter a burning building.',
+      'ពេលចេញមកក្រៅដោយសុវត្ថិភាព សូមហៅលេខ ១១៨ ភ្លាមៗ។ ដាច់ខាតកុំត្រឡប់ចូលក្នុងអគារដែលកំពុងឆេះវិញ។',
+    ),
+
+    // Category 6: Car Accident
+    'cat_car_over': _k(
+      'Roadside emergencies require hazard prevention before attending to victims to avoid secondary collisions.',
+      'គ្រោះថ្នាក់ចរាចរណ៍តម្រូវឱ្យមានការការពារគ្រោះថ្នាក់បន្ថែម មុនពេលជួយជនរងគ្រោះ។',
+    ),
+    'car_s1_t': _k('Secure the Scene & Turn Off Ignition', 'ការពារទីតាំង និងពន្លត់ម៉ាស៊ីន'),
+    'car_s1_b': _k(
+      'If safe, pull over to the shoulder, turn on emergency hazard flashers, and turn off the engine ignition to prevent fires.',
+      'បើមានសុវត្ថិភាព សូមឈប់អែបខាង បើកភ្លើងសញ្ញាអាសន្ន និងពន្លត់ម៉ាស៊ីនរថយន្តដើម្បីការពារភ្លើងឆេះ។',
+    ),
+    'car_s2_t': _k('Call Emergency Services', 'ហៅសេវាសង្គ្រោះបន្ទាន់'),
+    'car_s2_b': _k(
+      'Call 117 (Police) or 119 (Ambulance). Report the exact location, number of injured individuals, and vehicle count.',
+      'ហៅលេខ ១១៧ (ប៉ូលិស) ឬ ១១៩ (រថយន្តសង្គ្រោះ)។ ប្រាប់ទីតាំងជាក់លាក់ ចំនួនអ្នករបួស និងយានយន្ត។',
+    ),
+    'car_s3_t': _k('Check for Injuries & Do Not Move Victims', 'ពិនិត្យរបួស និងកុំផ្លាស់ទីអ្នករបួស'),
+    'car_s3_b': _k(
+      'Check all occupants for responsiveness and bleeding. Do NOT move seriously injured victims unless there is imminent danger of explosion or fire.',
+      'ពិនិត្យអ្នករបួសទាំងអស់។ កុំផ្លាស់ទីអ្នករងរបួសធ្ងន់ លើកលែងតែមានគ្រោះថ្នាក់ផ្ទុះ ឬឆេះភ្លាមៗ។',
+    ),
+    'car_s4_t': _k('Control Bleeding & Keep Warm', 'ទប់ការហូរឈាម និងរក្សាកម្តៅ'),
+    'car_s4_b': _k(
+      'Apply firm direct pressure to severe wounds with a clean cloth. Keep casualties calm and warm until emergency units arrive.',
+      'សង្កត់ផ្ទាល់លើមុខរបួសធ្ងន់ដោយក្រណាត់ស្អាត។ ជួយឱ្យជនរងគ្រោះស្ងប់ចិត្ត និងកក់ក្តៅ រហូតដល់ក្រុមសង្គ្រោះមកដល់។',
+    ),
+
+    // Legacy and common situation keys
     'what_happened': _k('What happened?', 'មានអ្វីកើតឡើង?'),
     'what_happened_sub': _k(
       "Tell us a little. We'll help you focus on what to do next.",

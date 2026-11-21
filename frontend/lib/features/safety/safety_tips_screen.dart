@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/animations/app_animations.dart';
 import '../../core/animations/staggered_entrance.dart';
 import '../../core/constants/app_state.dart';
 import '../../core/router/app_routes.dart';
@@ -13,33 +14,37 @@ import 'situation.dart';
 import 'widgets/breathing_ring.dart';
 import 'widgets/urgent_banner.dart';
 
-/// Safety · Your next steps — calm, situation-specific tips.
-///
-/// TODO(content): safety/medical wording is draft copy; have it reviewed by a
-/// qualified professional (and a native Khmer speaker) before release.
-class SafetyTipsScreen extends ConsumerWidget {
+/// Safety · Interactive Step-by-Step First Aid & Emergency Guide.
+class SafetyTipsScreen extends ConsumerStatefulWidget {
   const SafetyTipsScreen({super.key, required this.situation});
 
   final Situation situation;
 
-  static const _tipIcons = [
-    Icons.air_rounded,
-    Icons.visibility_rounded,
-    Icons.support_agent_rounded,
-  ];
+  @override
+  ConsumerState<SafetyTipsScreen> createState() => _SafetyTipsScreenState();
+}
+
+class _SafetyTipsScreenState extends ConsumerState<SafetyTipsScreen> {
+  final Set<int> _completedSteps = {};
+
+  void _toggleStep(int stepNumber) {
+    AppHaptics.fire(AppHaptic.selection);
+    setState(() {
+      if (_completedSteps.contains(stepNumber)) {
+        _completedSteps.remove(stepNumber);
+      } else {
+        _completedSteps.add(stepNumber);
+      }
+    });
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final keys = situation.tipKeys;
-
-    // First tip stands alone; the remaining tips share one divided card.
-    Widget tip(int i) => _TipRow(
-      icon: _iconFor(keys[i], i),
-      title: ref.tr('${keys[i]}_t'),
-      body: ref.tr('${keys[i]}_b'),
-      breathing: keys[i] == 'tip_breath',
-    );
+    final situation = widget.situation;
+    final steps = situation.steps;
+    final totalSteps = steps.length;
+    final doneSteps = _completedSteps.length;
 
     return LiquidAmbientCanvas(
       child: SafeArea(
@@ -50,12 +55,13 @@ class SafetyTipsScreen extends ConsumerWidget {
             child: StaggerScope(
               builder: (context, animation) => ListView(
                 padding: EdgeInsets.fromLTRB(
-                  12,
-                  0,
-                  20,
+                  16,
+                  4,
+                  16,
                   MainShell.navClearance(context),
                 ),
                 children: [
+                  // Back button to category hub
                   Align(
                     alignment: Alignment.centerLeft,
                     child: AppBackButton(
@@ -65,58 +71,170 @@ class SafetyTipsScreen extends ConsumerWidget {
                           : context.go(AppRoutes.safety),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 6),
+
+                  // Tag & Category Title
+                  Text(
+                    '${ref.tr('for_situation')} · ${ref.tr(situation.labelKey).toUpperCase()}',
+                    style: text.labelSmall?.copyWith(
+                      color: situation.iconColor,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    ref.tr(situation.labelKey),
+                    style: text.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Urgent help banner (pinned at top)
+                  StaggeredEntrance(
+                    animation: animation,
+                    begin: 0.0,
+                    end: 0.4,
+                    child: const UrgentBanner(bodyKey: 'urgent_body2'),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Overview card
+                  StaggeredEntrance(
+                    animation: animation,
+                    begin: 0.1,
+                    end: 0.5,
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: situation.iconBgColor.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: situation.iconColor.withOpacity(0.25),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            situation.icon,
+                            color: situation.iconColor,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              ref.tr(situation.overviewKey),
+                              style: text.bodyMedium?.copyWith(
+                                color: AppColors.textPrimary,
+                                height: 1.4,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Step progress header
+                  StaggeredEntrance(
+                    animation: animation,
+                    begin: 0.2,
+                    end: 0.6,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '${ref.tr('for_situation')} · ${ref.tr(situation.labelKey).toUpperCase()}',
-                          style: text.labelSmall?.copyWith(
-                            color: AppColors.blue,
-                            letterSpacing: 1.2,
-                            fontWeight: FontWeight.w700,
+                          ref
+                              .tr('step_progress')
+                              .replaceAll('{done}', '$doneSteps')
+                              .replaceAll('{total}', '$totalSteps'),
+                          style: text.titleSmall?.copyWith(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        Text(ref.tr('tips_calm'), style: text.headlineMedium),
-                        const SizedBox(height: 16),
-                        StaggeredEntrance(
-                          animation: animation,
-                          begin: 0.0,
-                          end: 0.5,
-                          child: const UrgentBanner(bodyKey: 'urgent_body2'),
-                        ),
-                        const SizedBox(height: 20),
-                        StaggeredEntrance(
-                          animation: animation,
-                          begin: 0.2,
-                          end: 0.7,
-                          child: _CardShell(child: tip(0)),
-                        ),
-                        const SizedBox(height: 14),
-                        StaggeredEntrance(
-                          animation: animation,
-                          begin: 0.4,
-                          end: 1.0,
-                          child: _CardShell(
-                            child: Column(
+                        if (doneSteps == totalSteps && totalSteps > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDCFCE7),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                for (var i = 1; i < keys.length; i++) ...[
-                                  if (i > 1)
-                                    const Divider(
-                                      height: 24,
-                                      color: AppColors.border,
-                                    ),
-                                  tip(i),
-                                ],
+                                Icon(
+                                  Icons.check_circle_rounded,
+                                  color: Color(0xFF16A34A),
+                                  size: 14,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Complete',
+                                  style: TextStyle(
+                                    color: Color(0xFF16A34A),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 12),
+
+                  // Numbered Step Cards
+                  for (var i = 0; i < steps.length; i++) ...[
+                    StaggeredEntrance(
+                      animation: animation,
+                      begin: 0.2 + (i * 0.08).clamp(0.0, 0.5),
+                      end: (0.6 + (i * 0.08)).clamp(0.0, 1.0),
+                      child: _StepCard(
+                        step: steps[i],
+                        situation: situation,
+                        isDone: _completedSteps.contains(steps[i].number),
+                        onToggle: () => _toggleStep(steps[i].number),
+                        onCall: () => context.push(AppRoutes.sosCall),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  const SizedBox(height: 16),
+
+                  // Footer Reference Note
+                  StaggeredEntrance(
+                    animation: animation,
+                    begin: 0.6,
+                    end: 1.0,
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Text(
+                          ref.tr('red_cross_reference'),
+                          textAlign: TextAlign.center,
+                          style: text.labelSmall?.copyWith(
+                            color: AppColors.textSecondary.withOpacity(0.8),
+                            fontStyle: FontStyle.italic,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -125,92 +243,150 @@ class SafetyTipsScreen extends ConsumerWidget {
       ),
     );
   }
-
-  IconData _iconFor(String key, int i) => switch (key) {
-    'tip_breath' => Icons.air_rounded,
-    'tip_car_around' => Icons.visibility_rounded,
-    'tip_trust' => Icons.support_agent_rounded,
-    'tip_fire_out' => Icons.exit_to_app_rounded,
-    'tip_fire_call' => Icons.phone_in_talk_rounded,
-    'tip_fire_away' => Icons.social_distance_rounded,
-    'tip_med_stay' => Icons.people_alt_rounded,
-    'tip_med_call' => Icons.support_agent_rounded,
-    _ => _tipIcons[i % _tipIcons.length],
-  };
 }
 
-class _CardShell extends StatelessWidget {
-  const _CardShell({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    // Frosted glass card (no per-card blur: these live in a scrolling list).
-    return SizedBox(
-      width: double.infinity,
-      child: LiquidGlassContainer(
-        radius: 22,
-        useBlur: false,
-        padding: const EdgeInsets.all(16),
-        child: child,
-      ),
-    );
-  }
-}
-
-class _TipRow extends StatelessWidget {
-  const _TipRow({
-    required this.icon,
-    required this.title,
-    required this.body,
-    this.breathing = false,
+/// An individual numbered step card in the vertical sequence.
+class _StepCard extends ConsumerWidget {
+  const _StepCard({
+    required this.step,
+    required this.situation,
+    required this.isDone,
+    required this.onToggle,
+    required this.onCall,
   });
 
-  final IconData icon;
-  final String title;
-  final String body;
-
-  /// "Take a gentle breath": adds the 4-second breathing ring.
-  final bool breathing;
+  final SafetyStep step;
+  final Situation situation;
+  final bool isDone;
+  final VoidCallback onToggle;
+  final VoidCallback onCall;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
-    final illustration = LayeredIconBadge(icon: icon, size: 52);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Fixed 65 px slot so breathing and plain tips line up.
-        SizedBox(
-          width: 65,
-          height: 65,
-          child: Center(
-            child: breathing
-                ? BreathingRing(child: illustration)
-                : illustration,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: text.titleMedium),
-                const SizedBox(height: 2),
-                Text(
-                  body,
-                  style: text.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
+
+    return AppInteractiveCard(
+      onTap: onToggle,
+      semanticLabel: 'Step ${step.number}: ${ref.tr(step.titleKey)}',
+      radius: 20,
+      glass: LiquidTint.frost,
+      restBorder: isDone ? const Color(0xFF86EFAC) : null,
+      padding: const EdgeInsets.all(16),
+      builder: (context, hovered, pressed) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Step pill badge & Checkbox toggle
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: isDone
+                      ? const Color(0xFFDCFCE7)
+                      : situation.iconBgColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  ref.tr('step_n_label').replaceAll('{n}', '${step.number}'),
+                  style: TextStyle(
+                    color: isDone
+                        ? const Color(0xFF16A34A)
+                        : situation.iconColor,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
+                    letterSpacing: 0.5,
                   ),
                 ),
-              ],
+              ),
+              const Spacer(),
+              // Checkbox indicator (with calming breathing ring on Step 1 of Car)
+              Builder(
+                builder: (context) {
+                  final checkbox = AnimatedContainer(
+                    duration: AppDurations.fast,
+                    width: 26,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      color: isDone
+                          ? const Color(0xFF16A34A)
+                          : Colors.white.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isDone
+                            ? const Color(0xFF16A34A)
+                            : AppColors.border,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Center(
+                      child: isDone
+                          ? const Icon(
+                              Icons.check_rounded,
+                              size: 18,
+                              color: Colors.white,
+                            )
+                          : null,
+                    ),
+                  );
+
+                  if (situation == Situation.car && step.number == 1) {
+                    return BreathingRing(
+                      size: 26,
+                      color: situation.iconColor,
+                      child: checkbox,
+                    );
+                  }
+                  return checkbox;
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Step Heading
+          Text(
+            ref.tr(step.titleKey),
+            style: text.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              decoration: isDone ? TextDecoration.lineThrough : null,
+              decorationColor: AppColors.textSecondary,
+              color: isDone
+                  ? AppColors.textSecondary
+                  : AppColors.textPrimary,
             ),
           ),
-        ),
-      ],
+          const SizedBox(height: 6),
+
+          // Actionable Instructions
+          Text(
+            ref.tr(step.bodyKey),
+            style: text.bodyMedium?.copyWith(
+              color: isDone
+                  ? AppColors.textSecondary.withOpacity(0.7)
+                  : AppColors.textSecondary,
+              height: 1.45,
+            ),
+          ),
+
+          // If step involves emergency calling, provide direct call action
+          if (step.isCallStep) ...[
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: AppInteractiveButton(
+                label: ref.tr('call_emergency_now'),
+                leadingIcon: Icons.phone_in_talk_rounded,
+                colors: AppButtonColors.glassRed,
+                height: 44,
+                onPressed: onCall,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

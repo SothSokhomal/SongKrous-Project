@@ -12,9 +12,9 @@ import '../../shared/widgets/main_shell.dart';
 import 'situation.dart';
 import 'widgets/urgent_banner.dart';
 
-/// Safety · What happened? — pick a situation, describe feelings (optional).
-/// NOTE: the free-text answer is not analysed yet; tips depend on the
-/// selected situation only.
+/// Safety · Zero-friction Category Hub.
+///
+/// Direct 1-tap access to authoritative first aid & emergency instructions.
 class SafetyInputScreen extends ConsumerStatefulWidget {
   const SafetyInputScreen({super.key});
 
@@ -23,18 +23,47 @@ class SafetyInputScreen extends ConsumerStatefulWidget {
 }
 
 class _SafetyInputScreenState extends ConsumerState<SafetyInputScreen> {
-  Situation _selected = Situation.car;
-  final _feeling = TextEditingController();
+  final _searchController = TextEditingController();
+  SafetyTag _selectedTag = SafetyTag.all;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.trim().toLowerCase();
+      });
+    });
+  }
 
   @override
   void dispose() {
-    _feeling.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  List<Situation> _filteredCategories(WidgetRef ref) {
+    return Situation.categories.where((cat) {
+      // 1. Tag filter
+      if (_selectedTag != SafetyTag.all && cat.tag != _selectedTag) {
+        return false;
+      }
+      // 2. Search query filter
+      if (_searchQuery.isNotEmpty) {
+        final title = ref.tr(cat.labelKey).toLowerCase();
+        final sub = ref.tr(cat.subKey).toLowerCase();
+        return title.contains(_searchQuery) || sub.contains(_searchQuery);
+      }
+      return true;
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final categories = _filteredCategories(ref);
+
     return LiquidAmbientCanvas(
       child: SafeArea(
         bottom: false,
@@ -49,73 +78,89 @@ class _SafetyInputScreenState extends ConsumerState<SafetyInputScreen> {
                 MainShell.navClearance(context),
               ),
               children: [
+                // Top branding header
                 Row(
                   children: [
                     Text(
                       ref.tr('safety'),
-                      style: text.titleMedium?.copyWith(color: AppColors.blue),
+                      style: text.titleMedium?.copyWith(
+                        color: AppColors.blue,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const Spacer(),
                     const Icon(
                       Icons.verified_user_rounded,
                       color: AppColors.blue,
+                      size: 22,
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Text(ref.tr('what_happened'), style: text.headlineMedium),
+                const SizedBox(height: 14),
+                Text(ref.tr('safety_title'), style: text.headlineMedium),
                 const SizedBox(height: 6),
                 Text(
-                  ref.tr('what_happened_sub'),
+                  ref.tr('safety_hub_sub'),
                   style: text.bodyLarge?.copyWith(
                     color: AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 16),
+                // Pinned urgent help banner
                 const UrgentBanner(),
-                const SizedBox(height: 24),
-                Text(ref.tr('which_situation'), style: text.titleMedium),
-                const SizedBox(height: 12),
-                for (final s in Situation.values) ...[
-                  _SituationCard(
-                    situation: s,
-                    selected: s == _selected,
-                    onTap: () => setState(() => _selected = s),
-                  ),
-                  const SizedBox(height: 10),
-                ],
+                const SizedBox(height: 18),
+
+                // Search Bar
+                _SearchBar(
+                  controller: _searchController,
+                  hint: ref.tr('safety_search_hint'),
+                  onClear: () {
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
+                  },
+                ),
                 const SizedBox(height: 14),
-                Text(ref.tr('how_feeling'), style: text.titleMedium),
-                const SizedBox(height: 12),
-                AppFocusInput(
-                  glass: true,
-                  glassBlur: false,
-                  radius: 20,
-                  builder: (context, node) => TextField(
-                    controller: _feeling,
-                    focusNode: node,
-                    minLines: 3,
-                    maxLines: 5,
-                    maxLength: 300,
-                    textInputAction: TextInputAction.newline,
-                    decoration: AppFocusInput.bareDecoration(
-                      counterText: '',
-                      hintText: ref.tr('feeling_hint'),
-                      hintStyle: const TextStyle(
-                        color: AppColors.textSecondary,
+
+                // Quick Filter Pills
+                _FilterPills(
+                  selectedTag: _selectedTag,
+                  onSelect: (tag) => setState(() => _selectedTag = tag),
+                ),
+                const SizedBox(height: 18),
+
+                // Category list / grid
+                if (categories.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.search_off_rounded,
+                            size: 48,
+                            color: AppColors.slate,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            ref.tr('filter_no_results'),
+                            style: text.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
-                    ).copyWith(contentPadding: const EdgeInsets.all(16)),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                AppInteractiveButton(
-                  label: ref.tr('show_tips'),
-                  trailingIcon: Icons.arrow_forward_rounded,
-                  colors: AppButtonColors.glassBlue,
-                  onPressed: () => context.push(
-                    '${AppRoutes.safetyTips}?situation=${_selected.name}',
-                  ),
-                ),
+                    ),
+                  )
+                else
+                  for (final cat in categories) ...[
+                    _CategoryCard(
+                      situation: cat,
+                      onTap: () => context.push(
+                        '${AppRoutes.safetyTips}?situation=${cat.name}',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
               ],
             ),
           ),
@@ -125,93 +170,246 @@ class _SafetyInputScreenState extends ConsumerState<SafetyInputScreen> {
   }
 }
 
-class _SituationCard extends ConsumerWidget {
-  const _SituationCard({
-    required this.situation,
-    required this.selected,
-    required this.onTap,
+/// Lightweight search bar with clean frosted look and quick clear action.
+class _SearchBar extends StatelessWidget {
+  const _SearchBar({
+    required this.controller,
+    required this.hint,
+    required this.onClear,
   });
 
-  final Situation situation;
-  final bool selected;
-  final VoidCallback onTap;
+  final TextEditingController controller;
+  final String hint;
+  final VoidCallback onClear;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final text = Theme.of(context).textTheme;
-    return AppInteractiveCard(
-      selected: selected,
-      onTap: onTap,
-      semanticLabel: ref.tr(situation.labelKey),
-      radius: 20,
-      glass: LiquidTint.frost,
-      selectedBorder: AppColors.blueDeep,
-      padding: const EdgeInsets.all(14),
-      builder: (context, hovered, pressed) => Row(
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.85),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x06000000),
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Row(
         children: [
-          // Check pops in when selected; the empty radio pops in otherwise.
-          AnimatedSwitcher(
-            duration: AppDurations.fast,
-            switchInCurve: Curves.easeOutBack,
-            transitionBuilder: (child, animation) =>
-                ScaleTransition(scale: animation, child: child),
-            child: Icon(
-              selected
-                  ? Icons.check_circle_rounded
-                  : Icons.radio_button_unchecked_rounded,
-              key: ValueKey(selected),
-              color: selected ? AppColors.blueDeep : AppColors.slate,
-            ),
+          const Icon(
+            Icons.search_rounded,
+            color: AppColors.textSecondary,
+            size: 22,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(ref.tr(situation.labelKey), style: text.titleMedium),
-                Text(
-                  ref.tr(situation.subKey),
-                  style: text.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+            child: TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
                 ),
-              ],
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              style: const TextStyle(fontSize: 15),
             ),
           ),
-          const SizedBox(width: 12),
-          _Illustration(situation: situation),
+          if (controller.text.isNotEmpty)
+            GestureDetector(
+              onTap: onClear,
+              child: const Padding(
+                padding: EdgeInsets.all(4),
+                child: Icon(
+                  Icons.close_rounded,
+                  color: AppColors.textSecondary,
+                  size: 18,
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 }
 
-class _Illustration extends StatelessWidget {
-  const _Illustration({required this.situation});
+/// Filter pills: All, Medical, Trauma, Rescue.
+class _FilterPills extends ConsumerWidget {
+  const _FilterPills({
+    required this.selectedTag,
+    required this.onSelect,
+  });
 
-  final Situation situation;
+  final SafetyTag selectedTag;
+  final ValueChanged<SafetyTag> onSelect;
 
   @override
-  Widget build(BuildContext context) {
-    final isFire = situation == Situation.fire;
-    final color = isFire ? AppColors.red : AppColors.blue;
-    return SizedBox(
-      width: 60,
-      height: 56,
-      child: Stack(
-        clipBehavior: Clip.none,
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
         children: [
-          LayeredIconBadge(icon: situation.icon, color: color, size: 52),
-          if (situation == Situation.car)
-            const Positioned(
-              right: 0,
-              top: -2,
+          _buildPill(ref, SafetyTag.all, 'filter_all'),
+          const SizedBox(width: 8),
+          _buildPill(ref, SafetyTag.medical, 'filter_medical'),
+          const SizedBox(width: 8),
+          _buildPill(ref, SafetyTag.trauma, 'filter_trauma'),
+          const SizedBox(width: 8),
+          _buildPill(ref, SafetyTag.rescue, 'filter_rescue'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPill(WidgetRef ref, SafetyTag tag, String labelKey) {
+    final isSelected = selectedTag == tag;
+    return GestureDetector(
+      onTap: () => onSelect(tag),
+      child: AnimatedContainer(
+        duration: AppDurations.fast,
+        curve: AppCurves.out,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.blueDeep : Colors.white.withOpacity(0.85),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.blueDeep : AppColors.border,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.blueDeep.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          ref.tr(labelKey),
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppColors.textPrimary,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Zero-friction category card: 1 tap navigates straight to instructions.
+class _CategoryCard extends ConsumerWidget {
+  const _CategoryCard({
+    required this.situation,
+    required this.onTap,
+  });
+
+  final Situation situation;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final text = Theme.of(context).textTheme;
+    final stepCountText = ref
+        .tr('step_count_label')
+        .replaceAll('{n}', situation.steps.length.toString());
+
+    return AppInteractiveCard(
+      onTap: onTap,
+      semanticLabel: ref.tr(situation.labelKey),
+      radius: 20,
+      glass: LiquidTint.frost,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      builder: (context, hovered, pressed) => Row(
+        children: [
+          // High-contrast circular icon badge
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: situation.iconBgColor,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
               child: Icon(
-                Icons.warning_rounded,
-                color: AppColors.gold,
-                size: 24,
+                situation.icon,
+                color: situation.iconColor,
+                size: 26,
               ),
             ),
+          ),
+          const SizedBox(width: 14),
+          // Title & Description & Step count chip
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        ref.tr(situation.labelKey),
+                        style: text.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.slateLight.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        stepCountText,
+                        style: const TextStyle(
+                          color: AppColors.blueDeep,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  ref.tr(situation.subKey),
+                  style: text.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                    height: 1.25,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          // Subtle chevron
+          AnimatedSlide(
+            duration: AppDurations.fast,
+            curve: AppCurves.out,
+            offset: Offset(hovered ? 2 / 16 : 0, 0),
+            child: const Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.slate,
+              size: 24,
+            ),
+          ),
         ],
       ),
     );
