@@ -1,11 +1,9 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
-
 import '../../core/animations/staggered_entrance.dart';
 import '../../core/animations/app_animations.dart';
 import '../../core/constants/app_state.dart';
@@ -158,9 +156,6 @@ class SosCallScreen extends ConsumerWidget {
   }
 }
 
-/// The solid red SOS circle (static child of the pulse rings).
-/// Hover: grows to 1.05 with a brighter glow. Press: compresses to 0.93 and
-/// fires a heavy haptic at touch-down — an unmistakable emergency confirmation.
 class _SosCore extends ConsumerWidget {
   const _SosCore({required this.onTap});
 

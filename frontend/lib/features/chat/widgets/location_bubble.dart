@@ -70,8 +70,15 @@ class LocationBubble extends ConsumerWidget {
                       children: [
                         TileLayer(
                           urlTemplate:
-                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+                          subdomains: const ['a', 'b', 'c'],
                           userAgentPackageName: 'com.songkrous.songkrous',
+                          maxZoom: 19,
+                          panBuffer: 1,
+                          keepBuffer: 2,
+                          tileDisplay: const TileDisplay.fadeIn(
+                            duration: Duration(milliseconds: 140),
+                          ),
                         ),
                       ],
                     ),

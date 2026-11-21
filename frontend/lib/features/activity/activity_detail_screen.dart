@@ -303,8 +303,16 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
                               ),
                               children: [
                                 TileLayer(
-                                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  urlTemplate:
+                                      'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+                                  subdomains: const ['a', 'b', 'c'],
                                   userAgentPackageName: 'com.songkrous.sos',
+                                  maxZoom: 19,
+                                  panBuffer: 1,
+                                  keepBuffer: 3,
+                                  tileDisplay: const TileDisplay.fadeIn(
+                                    duration: Duration(milliseconds: 140),
+                                  ),
                                 ),
                                 PolylineLayer(
                                   polylines: [

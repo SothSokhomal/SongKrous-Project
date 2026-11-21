@@ -16,7 +16,6 @@ enum _ActivityFilter {
   hospital,
   police,
   fire,
-  sos,
 }
 
 /// Recent Activity screen listing user's past emergency calls & SOS dispatches
@@ -41,7 +40,6 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
         _ActivityFilter.hospital => a.type == ActivityType.hospital,
         _ActivityFilter.police => a.type == ActivityType.police,
         _ActivityFilter.fire => a.type == ActivityType.fire,
-        _ActivityFilter.sos => a.type == ActivityType.sos,
       };
     }).toList();
 
@@ -93,12 +91,6 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                   icon: Icons.local_fire_department_rounded,
                   selected: _filter == _ActivityFilter.fire,
                   onTap: () => setState(() => _filter = _ActivityFilter.fire),
-                ),
-                _FilterChip(
-                  label: ref.tr('filter_sos'),
-                  icon: Icons.emergency_rounded,
-                  selected: _filter == _ActivityFilter.sos,
-                  onTap: () => setState(() => _filter = _ActivityFilter.sos),
                 ),
               ],
             ),

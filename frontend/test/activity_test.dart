@@ -65,12 +65,12 @@ void main() {
       expect(find.text('Recent Activity'), findsOneWidget);
       expect(find.text('Past emergency calls & SOS dispatches'), findsNothing);
 
-      // Verify all filter chips
+      // Verify all filter chips (SOS category chip has been removed)
       expect(find.text('All'), findsOneWidget);
       expect(find.text('Hospital'), findsWidgets);
       expect(find.text('Police'), findsWidgets);
       expect(find.text('Fire Station'), findsWidgets);
-      expect(find.text('SOS'), findsWidgets);
+      expect(find.text('SOS'), findsNothing);
 
       // Verify sample records are present
       expect(find.text('Calmette Hospital — Emergency Call'), findsOneWidget);

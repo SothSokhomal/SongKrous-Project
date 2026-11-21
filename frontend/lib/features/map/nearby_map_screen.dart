@@ -481,6 +481,11 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
 
         return Stack(
           children: [
+            // Soft realistic map canvas background while tiles load
+            const Positioned.fill(
+              child: ColoredBox(color: Color(0xFFF2F4F7)),
+            ),
+
             // 1 ── Map
             FlutterMap(
               mapController: _map,
@@ -522,8 +527,16 @@ class _NearbyMapScreenState extends ConsumerState<NearbyMapScreen>
               ),
               children: [
                 TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  urlTemplate:
+                      'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+                  subdomains: const ['a', 'b', 'c'],
                   userAgentPackageName: 'com.songkrous.songkrous',
+                  maxZoom: 19,
+                  panBuffer: 1,
+                  keepBuffer: 3,
+                  tileDisplay: const TileDisplay.fadeIn(
+                    duration: Duration(milliseconds: 140),
+                  ),
                 ),
                 if (sel != null && route != null)
                   AnimatedBuilder(

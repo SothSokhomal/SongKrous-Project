@@ -134,12 +134,12 @@ void main() {
       expect(find.text('Adult CPR'), findsWidgets);
       expect(find.byType(UrgentBanner), findsOneWidget);
 
-      // Verify Red Cross attribution footer
+      // Verify Red Cross attribution footer has been removed
       expect(
         find.text(
           'Reference: Standard Red Cross First Aid & Adult CPR Guidelines',
         ),
-        findsOneWidget,
+        findsNothing,
       );
 
       // Verify CPR steps are present

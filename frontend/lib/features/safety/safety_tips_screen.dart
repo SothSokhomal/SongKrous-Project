@@ -200,31 +200,6 @@ class _SafetyTipsScreenState extends ConsumerState<SafetyTipsScreen> {
                     const SizedBox(height: 12),
                   ],
 
-                  const SizedBox(height: 16),
-
-                  // Footer Reference Note
-                  StaggeredEntrance(
-                    animation: animation,
-                    begin: 0.6,
-                    end: 1.0,
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        child: Text(
-                          ref.tr('red_cross_reference'),
-                          textAlign: TextAlign.center,
-                          style: text.labelSmall?.copyWith(
-                            color: AppColors.textSecondary.withValues(alpha: 0.8),
-                            fontStyle: FontStyle.italic,
-                            height: 1.35,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 8),
                 ],
               ),

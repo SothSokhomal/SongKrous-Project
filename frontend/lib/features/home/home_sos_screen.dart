@@ -143,14 +143,14 @@ class _TopBar extends ConsumerWidget {
           label: ref.tr('app_name'),
           image: true,
           child: LiquidGlassContainer(
-            radius: 12,
+            radius: 13,
             tint: LiquidTint.frostStrong,
             useBlur: false,
-            width: 38,
-            height: 38,
-            padding: const EdgeInsets.all(4),
+            width: 44,
+            height: 44,
+            padding: const EdgeInsets.all(2),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(11),
               child: Image.asset(
                 'assets/images/app_logo.png',
                 fit: BoxFit.contain,
@@ -158,13 +158,13 @@ class _TopBar extends ConsumerWidget {
                 errorBuilder: (_, _, _) => const Icon(
                   Icons.emergency_rounded,
                   color: AppColors.red,
-                  size: 22,
+                  size: 26,
                 ),
               ),
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         // GPS status: frosted glass pill with a live green beacon.
         Semantics(
           button: true,
@@ -181,8 +181,8 @@ class _TopBar extends ConsumerWidget {
                 hovered: hovered,
                 pressed: pressed,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 7,
+                  horizontal: 10,
+                  vertical: 6,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

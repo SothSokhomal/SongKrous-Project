@@ -4,15 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import 'liquid_glass.dart';
 
-/// Brand card: rounded white square showing the official logo
-/// (`assets/images/logo.png`). If the asset is missing or fails to load, a
-/// typographic version (red `សង្គ្រោះ` + stacked blue `song / krous`) is drawn
-/// instead; pass `assetPath: null` to force that fallback.
-///
-/// All proportions are relative to the card size and match the 210 px splash
-/// spec (radius 36). When laid out with *tight* constraints — e.g. inside a
-/// `Hero` flight — the card adopts that size, so the logo scales smoothly
-/// between screens.
 class SongkrousLogo extends StatelessWidget {
   const SongkrousLogo({
     super.key,
@@ -24,10 +15,6 @@ class SongkrousLogo extends StatelessWidget {
 
   final double size;
   final String? assetPath;
-
-  /// The PNG has generous white margins (artwork ≈ 61% of its width, centred
-  /// ~3% above middle). Scale it up about that point so the wordmark fills the
-  /// card; the card clips the overflow.
   static const double _assetZoom = 1.45;
   static const Alignment _assetFocus = Alignment(0, -0.19);
 
